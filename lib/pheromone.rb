@@ -30,11 +30,9 @@ module Pheromone
         retries ||= 0
         send_message(options)
       rescue Kafka::DeliveryFailed
-        WaterDrop::Pool.reset_pool
-        Logger.log('WaterDrop::ConnectionPool Shutting Down')
         retry if (retries += 1) < NUMBER_RETRIES
       rescue => error
-        Logger.log(error)
+        raise error
       end
     end
   end
