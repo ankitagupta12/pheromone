@@ -6,8 +6,8 @@ require 'active_support'
 module Pheromone
   extend ::ActiveSupport::Concern
   # Usage: For publishing messages to kafka, include this concern in the model and then add
-  #  include Publishable
-  #  publish on: :after_save,
+  #  include Pheromone
+  #  produce on: :after_save,
   #          message_options: [
   #            {
   #              topic: :topic1,
@@ -81,9 +81,9 @@ module Pheromone
     ).send!
   end
 
-  # class methods for the model including Publishable
+  # class methods for the model including Pheromone
   module ClassMethods
-    def publish(on:, message_options:)
+    def produce(on:, message_options:)
       errors = PublishableOptionsValidator.new(message_options).validate
       raise "Errors: #{errors}" unless errors.empty?
       __send__(on, proc { dispatch_messages(message_options: message_options) })

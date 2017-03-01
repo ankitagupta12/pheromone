@@ -10,7 +10,7 @@ describe Pheromone do
 
     # The model block works just like the class definition.
     model do
-      include Publishable
+      include Pheromone
       def message
         { name: name }
       end
@@ -23,7 +23,7 @@ describe Pheromone do
         'mock'
       end
 
-      publish on: :after_save,
+      produce on: :after_save,
               message_options: [
                 {
                   event_types: [:create, :update],
