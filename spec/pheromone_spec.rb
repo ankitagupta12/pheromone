@@ -5,12 +5,14 @@ describe Pheromone do
     table do |t|
       t.string :name
       t.string :type
+      t.boolean :condition, default: false
       t.timestamps null: false
     end
 
     # The model block works just like the class definition.
     model do
       include Pheromone
+
       def message
         { name: name }
       end
@@ -23,46 +25,45 @@ describe Pheromone do
         'mock'
       end
 
-      produce on: :after_save,
-              message_options: [
-                {
-                  event_types: [:create, :update],
-                  topic: :topic1,
-                  message: ->(obj) { { name: obj.name } }
-                },
-                {
-                  event_types: [:create, :update],
-                  topic: :topic1,
-                  message: -> {},
-                },
-                {
-                  event_types: [:create, :update],
-                  topic: :topic1,
-                  serializer: Class.new(BaseSerializer) { attributes :name, :type },
-                  serlializer_options: { scope: '' }
-                },
-                {
-                  event_types: [:create],
-                  topic: :topic2,
-                  message: :message
-                },
-                {
-                  event_types: [:create],
-                  topic: :topic3,
-                  message: :message1
-                },
-              ]
+      publish message_options: [
+          {
+              event_types: [:create, :update],
+              topic: :topic1,
+              message: ->(obj) { { name: obj.name } }
+          },
+          {
+              event_types: [:create, :update],
+              topic: :topic1,
+              message: -> {},
+          },
+          {
+              event_types: [:create],
+              topic: :topic2,
+              message: :message
+          },
+          {
+              event_types: [:create],
+              topic: :topic3,
+              message: :message1
+          },
+          {
+              event_types: [:create],
+              topic: :topic4,
+              if: ->(data) { data.condition },
+              message: :message
+          },
+          {
+              event_types: [:update],
+              topic: :topic5,
+              if: ->(data) { data.condition },
+              message: :message
+          },
+      ]
     end
   end
 
   let(:model_create_messages) do
     [
-      {
-        event: 'create',
-        entity: 'PublishableModel',
-        timestamp: @timestamp,
-        blob: { name: 'sample', type: 'mock' }
-      }.to_json,
       {
         event: 'create',
         entity: 'PublishableModel',
@@ -85,12 +86,6 @@ describe Pheromone do
           event: 'update',
           entity: 'PublishableModel',
           timestamp: @timestamp,
-          blob: { name: 'sample', type: 'mock' }
-        }.to_json,
-        {
-          event: 'update',
-          entity: 'PublishableModel',
-          timestamp: @timestamp,
           blob: { name: 'sample' }
         }.to_json
       ]
@@ -108,17 +103,16 @@ describe Pheromone do
         double(send!: nil)
       end
 
-      @timestamp = Time.zone.local(2015, 3, 12, 8, 30)
+      @timestamp = Time.local(2015, 3, 12, 8, 30)
     end
 
     context 'create' do
       before do
-        expect(Bugsnag).to receive(:notify).twice
         Timecop.freeze(@timestamp) { @model = PublishableModel.create }
       end
 
       it 'sends messages on create' do
-        expect(@invocation_count).to eq(3)
+        expect(@invocation_count).to eq(2)
         expect(@topics).to match_array([:topic1, :topic2])
         expect(@messages).to match_array(model_create_messages)
       end
@@ -126,23 +120,20 @@ describe Pheromone do
 
     context 'update' do
       before do
-        expect(Bugsnag).to receive(:notify).thrice
         Timecop.freeze(@timestamp) { @model = PublishableModel.create }
       end
       it 'sends messages on update' do
         Timecop.freeze(@timestamp) { @model.update!(name: 'new name') }
-        expect(@invocation_count).to eq(5)
+        expect(@invocation_count).to eq(3)
         expect(@topics).to match_array([:topic1, :topic2])
         expect(@messages).to match_array(model_update_messages)
       end
     end
-  end
-
-  context 'connectivity issues to Kafka' do
-    it 'attermpts to reset the waterdrop connection pool' do
-      allow(WaterDrop::Message).to receive(:new).and_raise(Kafka::DeliveryFailed)
-      expect(WaterDrop::Pool).to receive(:reset_pool).exactly(6).times
-      PublishableModel.create
+    context 'conditional publish' do
+      before { Timecop.freeze(@timestamp) { @model = PublishableModel.create(condition: true) } }
+      it 'sends an extra message when events and condition matches' do
+        expect(@topics).to match_array([:topic1, :topic2, :topic4, :topic5])
+      end
     end
   end
 
@@ -164,7 +155,7 @@ describe Pheromone do
         end
       end
       PublishableModel.create
-      expect(@invocation_count).to eq(3)
+      expect(@invocation_count).to eq(2)
       expect(PublishableModel.count).to eq(1)
     end
 
