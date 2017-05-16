@@ -5,7 +5,6 @@ require 'pheromone'
 require 'timecop'
 require 'with_model'
 require 'waterdrop'
-require 'pry'
 
 RSpec.configure do |config|
   config.extend WithModel
