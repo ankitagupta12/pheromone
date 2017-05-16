@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = %q{Transmits messages to kafka from active record}
   spec.description   = %q{Sends messages to kafka using different formats and strategies}
-  spec.homepage      = 'https://github.com/honestbee/pheromone'
+  spec.homepage      = 'https://github.com/ankitagupta12/pheromone'
   spec.license       = 'MIT'
 
   spec.files         = Dir["{lib}/**/*.rb", "bin/*", "LICENSE", "*.md"]
