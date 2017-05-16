@@ -171,6 +171,26 @@ class PublishableModel < ActiveRecord::Base
   end
 end
 ```
+
+### 4. Specifying the topic
+
+The kafka topic can be specified in the `topic` option to `publish`. To publish to `topic_test`, use the following:
+
+
+```
+class PublishableModel < ActiveRecord::Base
+  include Pheromone
+  publish message_options: [
+    {
+      event_types: [:create],
+      topic: :topic_test,
+      message: ->(obj) { { name: obj.name } }
+    }
+  ]
+end
+```
+
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
