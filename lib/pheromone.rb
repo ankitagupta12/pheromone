@@ -10,8 +10,7 @@ require 'active_support'
 #            {
 #              topic: :topic1,
 #              event_types: [:create, :update],
-#              serializer: OrderSerializer,
-#              serializer_options: { scope: '' }
+#              message: { a: 1, b: 2 }
 #            },....
 #          ]
 #

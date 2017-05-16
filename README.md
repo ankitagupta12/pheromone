@@ -1,8 +1,6 @@
 # Pheromone
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/pheromone`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+`pheromone` provides a utility function to easily send `ActiveRecord` updates to Kafka. 
 
 ## Installation
 
@@ -14,16 +12,165 @@ gem 'pheromone'
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
 Or install it yourself as:
 
     $ gem install pheromone
 
+## Waterdrop Setup
+
+Pheromone depends on `waterdrop` to send messages to Kafka. `waterdrop` settings can be added by following the Setup step on [waterdrop](https://github.com/karafka/waterdrop/blob/master/README.md)
+
+WaterDrop has following configuration options:
+
+| Option                  | Value type    | Description                      |
+|-------------------------|---------------|----------------------------------|
+| send_messages           | Boolean       | Should we send messages to Kafka |
+| kafka.hosts             | Array<String> | Kafka servers hosts with ports   |
+| connection_pool_size    | Integer       | Kafka connection pool size       |
+| connection_pool_timeout | Integer       | Kafka connection pool timeout    |
+| raise_on_failure        | Boolean       | Should we raise an exception when we cannot send message to Kafka - if false will silently ignore failures (will just ignore them) |
+
+To apply this configuration, you need to use a *setup* method:
+
+```ruby
+WaterDrop.setup do |config|
+  config.send_messages = true
+  config.connection_pool_size = 20
+  config.connection_pool_timeout = 1
+  config.kafka.hosts = ['localhost:9092']
+  config.raise_on_failure = true
+end
+```
+
+This configuration can be placed in *config/initializers* and can vary based on the environment:
+
+```ruby
+WaterDrop.setup do |config|
+  config.send_messages = Rails.env.production?
+  config.connection_pool_size = 20
+  config.connection_pool_timeout = 1
+  config.kafka.hosts = [Rails.env.production? ? 'prod-host:9091' : 'localhost:9092']
+  config.raise_on_failure = Rails.env.production?
+end
+```
+ 
 ## Usage
 
-TODO: Write usage instructions here
+### 1. Supported events
+#### 1.a. To send messages for model `create` event, add the following lines to your ActiveRecord model
 
+```
+class PublishableModel < ActiveRecord::Base
+  include Pheromone
+  publish message_options: [
+    {
+      event_types: [:create],
+      topic: :topic1,
+      message: ->(obj) { { name: obj.name } }
+    }
+  ]
+end
+```
+
+#### 1.b. To send messages for model `update` event, specify `update` in the `event_types` array:
+
+```
+class PublishableModel < ActiveRecord::Base
+  include Pheromone
+  publish message_options: [
+    {
+      event_types: [:update],
+      topic: :topic1,
+      message: ->(obj) { { name: obj.name } }
+    }
+  ]
+end
+``` 
+
+Messages can be published for multiple event types by defining `events_types: [:create, :update]`.
+
+### 2. Supported message formats
+
+#### 2.a. Using a proc in `message` 
+
+```
+class PublishableModel < ActiveRecord::Base
+  include Pheromone
+  publish message_options: [
+    {
+      event_types: [:create],
+      topic: :topic1,
+      message: ->(obj) { { name: obj.name } }
+    }
+  ]
+end
+```
+
+#### 2.a. Using a defined function in `message`
+
+```
+class PublishableModel < ActiveRecord::Base
+  include Pheromone
+  publish message_options: [
+    {
+      event_types: [:update],
+      topic: :topic1,
+      message: message 
+    }
+  ]
+  
+  def message
+    { name: self.name }
+  end
+end
+```
+
+### 3. Sending messages conditionally
+
+#### 3.a. Using a proc in `if`
+
+```
+class PublishableModel < ActiveRecord::Base
+  include Pheromone
+  publish message_options: [
+    {
+      event_types: [:update],
+      topic: :topic1,
+      message: message,
+      if: ->(data) { data.condition },
+    }
+  ] 
+   
+  def message
+    { name: self.name }
+  end
+end
+```
+#### 3.b. Using a defined function in `if`
+
+```
+class PublishableModel < ActiveRecord::Base
+  include Pheromone
+  publish message_options: [
+    {
+      event_types: [:update],
+      topic: :topic1,
+      message: message,
+      if: pre_condition
+    }
+  ] 
+  
+  def pre_condition
+    name.present?
+  end
+  
+  def message
+    { name: self.name }
+  end
+end
+```
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
