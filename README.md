@@ -1,6 +1,8 @@
 # Pheromone
 
-`pheromone` provides a utility function to easily send `ActiveRecord` updates to Kafka. 
+Pheromones are chemical substances secreted from glands and used as a means of communication.
+
+`pheromone` is a mixin to easily send `ActiveRecord` updates to Kafka whenever there is a model update and/or create. 
 
 ## Installation
 
