@@ -23,7 +23,7 @@ describe OptionsValidator do
         }
       ]
       expect(
-        OptionsValidator.new(message_options).validate
+        described_class.new(message_options).validate
       ).to match(topic: 'Topic name missing')
     end
 
@@ -42,7 +42,7 @@ describe OptionsValidator do
       ]
 
       expect(
-        OptionsValidator.new(message_options).validate
+        described_class.new(message_options).validate
       ).to match(event_types: 'Event types must be a non-empty array with types create,update')
     end
 
@@ -61,7 +61,7 @@ describe OptionsValidator do
       ]
 
       expect(
-        OptionsValidator.new(message_options).validate
+        described_class.new(message_options).validate
       ).to match(event_types: 'Event types must be a non-empty array with types create,update')
     end
 
@@ -79,7 +79,7 @@ describe OptionsValidator do
       ]
 
       expect(
-        OptionsValidator.new(message_options).validate
+        described_class.new(message_options).validate
       ).to match(message_attributes: 'Either serializer or message should be specified')
     end
   end
@@ -103,7 +103,7 @@ describe OptionsValidator do
         }
       ]
 
-      expect(OptionsValidator.new(message_options).validate).to be_empty
+      expect(described_class.new(message_options).validate).to be_empty
     end
   end
 end

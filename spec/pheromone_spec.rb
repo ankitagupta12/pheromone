@@ -81,19 +81,19 @@ describe Pheromone do
       {
         event: 'create',
         entity: 'PublishableModel',
-        timestamp: @timestamp,
+        timestamp: timestamp,
         blob: { name: 'sample' }
       }.to_json,
       {
         event: 'create',
         entity: 'PublishableModel',
-        timestamp: @timestamp,
+        timestamp: timestamp,
         blob: { name: 'sample' }
       }.to_json,
       {
         event: 'create',
         entity: 'PublishableModel',
-        timestamp: @timestamp,
+        timestamp: timestamp,
         blob: { title: 'title' }
       }.to_json
     ]
@@ -105,60 +105,61 @@ describe Pheromone do
         {
           event: 'update',
           entity: 'PublishableModel',
-          timestamp: @timestamp,
+          timestamp: timestamp,
           blob: { name: 'sample' }
         }.to_json,
         {
           event: 'update',
           entity: 'PublishableModel',
-          timestamp: @timestamp,
+          timestamp: timestamp,
           blob: { title: 'title' }
         }.to_json
       ]
     )
   end
+
   context 'callback chain succeeds' do
+    let(:timestamp) { Time.local(2015, 3, 12, 8, 30) }
+    let(:topics) { Set.new }
+    let(:messages) { [] }
+
     before do
       @invocation_count = 0
-      @topics = Set.new
-      @messages = []
       allow(WaterDrop::Message).to receive(:new) do |topic, message, _|
         @invocation_count += 1
-        @topics << topic
-        @messages << message
+        topics << topic
+        messages << message
         double(send!: nil)
       end
-
-      @timestamp = Time.local(2015, 3, 12, 8, 30)
     end
 
     context 'create' do
       before do
-        Timecop.freeze(@timestamp) { @model = PublishableModel.create }
+        Timecop.freeze(timestamp) { @model = PublishableModel.create }
       end
 
       it 'sends messages on create' do
         expect(@invocation_count).to eq(3)
-        expect(@topics).to match_array(%i(topic1 topic2))
-        expect(@messages).to match_array(model_create_messages)
+        expect(topics).to match_array(%i(topic1 topic2))
+        expect(messages).to match_array(model_create_messages)
       end
     end
 
     context 'update' do
       before do
-        Timecop.freeze(@timestamp) { @model = PublishableModel.create }
+        Timecop.freeze(timestamp) { @model = PublishableModel.create }
       end
       it 'sends messages on update' do
-        Timecop.freeze(@timestamp) { @model.update!(name: 'new name') }
+        Timecop.freeze(timestamp) { @model.update!(name: 'new name') }
         expect(@invocation_count).to eq(5)
-        expect(@topics).to match_array([:topic1, :topic2])
-        expect(@messages).to match_array(model_update_messages)
+        expect(topics).to match_array([:topic1, :topic2])
+        expect(messages).to match_array(model_update_messages)
       end
     end
     context 'conditional publish' do
-      before { Timecop.freeze(@timestamp) { @model = PublishableModel.create(condition: true) } }
+      before { Timecop.freeze(timestamp) { @model = PublishableModel.create(condition: true) } }
       it 'sends an extra message when events and condition matches' do
-        expect(@topics).to match_array(%i(topic1 topic2 topic4 topic5))
+        expect(topics).to match_array(%i(topic1 topic2 topic4 topic5))
       end
     end
   end
@@ -168,7 +169,7 @@ describe Pheromone do
       @invocation_count = 0
       allow(WaterDrop::Message).to receive(:new) do
         @invocation_count += 1
-        double(send!: nil)
+        instance_double(send!: nil)
       end
     end
 
