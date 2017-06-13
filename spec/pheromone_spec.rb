@@ -25,7 +25,7 @@ describe Pheromone do
         'mock'
       end
 
-      publish message_options: [
+      publish [
         {
           event_types: %i(create update),
           topic: :topic1,

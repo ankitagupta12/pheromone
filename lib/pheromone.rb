@@ -28,7 +28,7 @@ module Pheromone
 
   # class methods for the model including Publishable
   module ClassMethods
-    def publish(message_options:)
+    def publish(message_options)
       errors = OptionsValidator.new(message_options).validate
       raise "Errors: #{errors}" unless errors.empty?
       __send__(:after_commit, proc { dispatch_messages(message_options: message_options) })
