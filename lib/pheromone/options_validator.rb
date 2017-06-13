@@ -1,6 +1,7 @@
+# frozen_string_literal: true
 # validate message options provided to publish method in Publishable concern
 class OptionsValidator
-  ACCEPTED_EVENT_TYPES = [:create, :update].freeze
+  ACCEPTED_EVENT_TYPES = %i(create update).freeze
 
   def initialize(message_options)
     @errors = {}
@@ -34,13 +35,13 @@ class OptionsValidator
       event_types = options[:event_types]
       next true unless event_types
       event_types.present? &&
-          event_types.is_a?(Array) &&
-          (event_types - ACCEPTED_EVENT_TYPES).empty?
+        event_types.is_a?(Array) &&
+        (event_types - ACCEPTED_EVENT_TYPES).empty?
     end
 
     add_error_message(
-        :event_types,
-        "Event types must be a non-empty array with types #{ACCEPTED_EVENT_TYPES.join(',')}"
+      :event_types,
+      "Event types must be a non-empty array with types #{ACCEPTED_EVENT_TYPES.join(',')}"
     )
   end
 

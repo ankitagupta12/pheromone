@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'spec_helper'
 
 describe OptionsValidator do
@@ -13,7 +14,7 @@ describe OptionsValidator do
       message_options = [
         {
           topic: :topic1,
-          event_types: [:create, :update],
+          event_types: %i(create update),
           message: { a: 1 }
         },
         {
@@ -30,7 +31,7 @@ describe OptionsValidator do
       message_options = [
         {
           topic: :topic1,
-          event_types: [:create, :update],
+          event_types: %i(create update),
           message: { a: 1 }
         },
         {
@@ -49,7 +50,7 @@ describe OptionsValidator do
       message_options = [
         {
           topic: :topic1,
-          event_types: [:create, :update],
+          event_types: %i(create update),
           message: { a: 1 }
         },
         {
@@ -68,7 +69,7 @@ describe OptionsValidator do
       message_options = [
         {
           topic: :topic1,
-          event_types: [:create, :update],
+          event_types: %i(create update),
           message: { a: 1 }
         },
         {
@@ -88,7 +89,7 @@ describe OptionsValidator do
       message_options = [
         {
           topic: :topic1,
-          event_types: [:create, :update],
+          event_types: %i(create update),
           message: { a: 1 }
         },
         {
@@ -99,7 +100,7 @@ describe OptionsValidator do
         {
           topic: :topic3,
           message: :function_name
-        },
+        }
       ]
 
       expect(OptionsValidator.new(message_options).validate).to be_empty

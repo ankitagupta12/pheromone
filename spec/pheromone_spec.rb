@@ -26,38 +26,38 @@ describe Pheromone do
       end
 
       publish message_options: [
-          {
-              event_types: [:create, :update],
-              topic: :topic1,
-              message: ->(obj) { { name: obj.name } }
-          },
-          {
-              event_types: [:create, :update],
-              topic: :topic1,
-              message: -> {},
-          },
-          {
-              event_types: [:create],
-              topic: :topic2,
-              message: :message
-          },
-          {
-              event_types: [:create],
-              topic: :topic3,
-              message: :message1
-          },
-          {
-              event_types: [:create],
-              topic: :topic4,
-              if: ->(data) { data.condition },
-              message: :message
-          },
-          {
-              event_types: [:update],
-              topic: :topic5,
-              if: ->(data) { data.condition },
-              message: :message
-          },
+        {
+          event_types: %i(create update),
+          topic: :topic1,
+          message: ->(obj) { { name: obj.name } }
+        },
+        {
+          event_types: %i(create update),
+          topic: :topic1,
+          message: -> {}
+        },
+        {
+          event_types: [:create],
+          topic: :topic2,
+          message: :message
+        },
+        {
+          event_types: [:create],
+          topic: :topic3,
+          message: :message1
+        },
+        {
+          event_types: [:create],
+          topic: :topic4,
+          if: ->(data) { data.condition },
+          message: :message
+        },
+        {
+          event_types: [:update],
+          topic: :topic5,
+          if: ->(data) { data.condition },
+          message: :message
+        }
       ]
     end
   end
@@ -113,7 +113,7 @@ describe Pheromone do
 
       it 'sends messages on create' do
         expect(@invocation_count).to eq(2)
-        expect(@topics).to match_array([:topic1, :topic2])
+        expect(@topics).to match_array(%i(topic1 topic2))
         expect(@messages).to match_array(model_create_messages)
       end
     end
@@ -132,7 +132,7 @@ describe Pheromone do
     context 'conditional publish' do
       before { Timecop.freeze(@timestamp) { @model = PublishableModel.create(condition: true) } }
       it 'sends an extra message when events and condition matches' do
-        expect(@topics).to match_array([:topic1, :topic2, :topic4, :topic5])
+        expect(@topics).to match_array(%i(topic1 topic2 topic4 topic5))
       end
     end
   end

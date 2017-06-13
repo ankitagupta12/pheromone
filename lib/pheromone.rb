@@ -23,7 +23,6 @@ require 'active_support'
 # To control how the model is serialized before being published to kafka
 # either provide a Serializer via the `serializer` key or a callback or instance
 # method name via the `message` key
-
 module Pheromone
   extend ActiveSupport::Concern
 

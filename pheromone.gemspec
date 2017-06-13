@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
@@ -9,12 +10,12 @@ Gem::Specification.new do |spec|
   spec.authors       = ['Ankita Gupta']
   spec.email         = ['ankitagupta12391@gmail.com']
 
-  spec.summary       = %q{Transmits messages to kafka from active record}
-  spec.description   = %q{Sends messages to kafka using different formats and strategies}
+  spec.summary       = 'Transmits messages to kafka from active record'
+  spec.description   = 'Sends messages to kafka using different formats and strategies'
   spec.homepage      = 'https://github.com/ankitagupta12/pheromone'
   spec.license       = 'MIT'
 
-  spec.files         = Dir["{lib}/**/*.rb", "bin/*", "LICENSE", "*.md"]
+  spec.files         = Dir['{lib}/**/*.rb', 'bin/*', 'LICENSE', '*.md']
   spec.bindir        = 'exe'
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
