@@ -6,6 +6,7 @@ require 'pheromone'
 require 'timecop'
 require 'with_model'
 require 'waterdrop'
+require 'active_model_serializers'
 
 RSpec.configure do |config|
   config.extend WithModel

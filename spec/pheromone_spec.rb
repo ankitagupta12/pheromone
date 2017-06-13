@@ -1,6 +1,14 @@
 require 'spec_helper'
 
 describe Pheromone do
+  class BaseSerializer < ActiveModel::Serializer
+    attributes :title
+
+    def title
+      'title'
+    end
+  end
+
   with_model :PublishableModel do
     table do |t|
       t.string :name
@@ -35,6 +43,12 @@ describe Pheromone do
           event_types: %i(create update),
           topic: :topic1,
           message: -> {}
+        },
+        {
+          event_types: [:create, :update],
+          topic: :topic1,
+          serializer: BaseSerializer,
+          serlializer_options: { scope: '' }
         },
         {
           event_types: [:create],
@@ -75,6 +89,12 @@ describe Pheromone do
         entity: 'PublishableModel',
         timestamp: @timestamp,
         blob: { name: 'sample' }
+      }.to_json,
+      {
+        event: 'create',
+        entity: 'PublishableModel',
+        timestamp: @timestamp,
+        blob: { title: 'title' }
       }.to_json
     ]
   end
@@ -87,6 +107,12 @@ describe Pheromone do
           entity: 'PublishableModel',
           timestamp: @timestamp,
           blob: { name: 'sample' }
+        }.to_json,
+        {
+          event: 'update',
+          entity: 'PublishableModel',
+          timestamp: @timestamp,
+          blob: { title: 'title' }
         }.to_json
       ]
     )
@@ -112,7 +138,7 @@ describe Pheromone do
       end
 
       it 'sends messages on create' do
-        expect(@invocation_count).to eq(2)
+        expect(@invocation_count).to eq(3)
         expect(@topics).to match_array(%i(topic1 topic2))
         expect(@messages).to match_array(model_create_messages)
       end
@@ -124,7 +150,7 @@ describe Pheromone do
       end
       it 'sends messages on update' do
         Timecop.freeze(@timestamp) { @model.update!(name: 'new name') }
-        expect(@invocation_count).to eq(3)
+        expect(@invocation_count).to eq(5)
         expect(@topics).to match_array([:topic1, :topic2])
         expect(@messages).to match_array(model_update_messages)
       end
@@ -155,7 +181,7 @@ describe Pheromone do
         end
       end
       PublishableModel.create
-      expect(@invocation_count).to eq(2)
+      expect(@invocation_count).to eq(3)
       expect(PublishableModel.count).to eq(1)
     end
 

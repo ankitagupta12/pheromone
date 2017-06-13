@@ -80,7 +80,7 @@ module Pheromone
   def message_blob(options)
     message = options[:message]
     return call_proc_or_instance_method(message) if message
-    # options[:serializer].new(self, options[:serializer_options] || {}).serializable_object
+    options[:serializer].new(self, options[:serializer_options] || {}).serializable_object
   end
 
   # This method has the :reek:ManualDispatch smell,
