@@ -2,7 +2,7 @@
 
 Pheromones are chemical substances secreted from glands and used as a means of communication.
 
-`pheromone` is a mixin to easily send `ActiveRecord` updates to Kafka whenever there is a model update and/or create. 
+`pheromone` allows setting up producers that publish `ActiveRecord` updates to Kafka whenever there is a model update and/or create.
 
 ## Installation
 
@@ -57,7 +57,7 @@ WaterDrop.setup do |config|
   config.raise_on_failure = Rails.env.production?
 end
 ```
- 
+
 ## Usage
 
 ### 1. Supported events
@@ -66,7 +66,7 @@ end
 ```
 class PublishableModel < ActiveRecord::Base
   include Pheromone
-  publish message_options: [
+  publish [
     {
       event_types: [:create],
       topic: :topic1,
@@ -81,7 +81,7 @@ end
 ```
 class PublishableModel < ActiveRecord::Base
   include Pheromone
-  publish message_options: [
+  publish [
     {
       event_types: [:update],
       topic: :topic1,
@@ -89,18 +89,18 @@ class PublishableModel < ActiveRecord::Base
     }
   ]
 end
-``` 
+```
 
 Messages can be published for multiple event types by defining `events_types: [:create, :update]`.
 
 ### 2. Supported message formats
 
-#### 2.a. Using a proc in `message` 
+#### 2.a. Using a proc in `message`
 
 ```
 class PublishableModel < ActiveRecord::Base
   include Pheromone
-  publish message_options: [
+  publish [
     {
       event_types: [:create],
       topic: :topic1,
@@ -115,14 +115,14 @@ end
 ```
 class PublishableModel < ActiveRecord::Base
   include Pheromone
-  publish message_options: [
+  publish [
     {
       event_types: [:update],
       topic: :topic1,
-      message: message 
+      message: message
     }
   ]
-  
+
   def message
     { name: self.name }
   end
@@ -136,15 +136,15 @@ end
 ```
 class PublishableModel < ActiveRecord::Base
   include Pheromone
-  publish message_options: [
+  publish [
     {
       event_types: [:update],
       topic: :topic1,
       message: message,
       if: ->(data) { data.condition },
     }
-  ] 
-   
+  ]
+
   def message
     { name: self.name }
   end
@@ -155,19 +155,19 @@ end
 ```
 class PublishableModel < ActiveRecord::Base
   include Pheromone
-  publish message_options: [
+  publish [
     {
       event_types: [:update],
       topic: :topic1,
       message: message,
       if: pre_condition
     }
-  ] 
-  
+  ]
+
   def pre_condition
     name.present?
   end
-  
+
   def message
     { name: self.name }
   end
@@ -182,7 +182,7 @@ The kafka topic can be specified in the `topic` option to `publish`. To publish 
 ```
 class PublishableModel < ActiveRecord::Base
   include Pheromone
-  publish message_options: [
+  publish [
     {
       event_types: [:create],
       topic: :topic_test,
