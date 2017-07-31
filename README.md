@@ -110,7 +110,7 @@ class PublishableModel < ActiveRecord::Base
 end
 ```
 
-#### 2.a. Using a defined function in `message`
+#### 2.b. Using a defined function in `message`
 
 ```
 class PublishableModel < ActiveRecord::Base
@@ -128,6 +128,22 @@ class PublishableModel < ActiveRecord::Base
   end
 end
 ```
+
+#### 2.c. Using a serializer in `message`
+
+```
+class PublishableModel < ActiveRecord::Base
+  include Pheromone
+  publish [
+    {
+      event_types: [:create],
+      topic: :topic1,
+      serializer: Class.new(BaseSerializer) { attributes :name, :type }
+    }
+  ]
+end
+```
+
 
 ### 3. Sending messages conditionally
 
