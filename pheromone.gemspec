@@ -20,8 +20,9 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'activesupport', '~> 5.0'
-  spec.add_dependency 'activerecord', '~> 5.0'
+  spec.add_development_dependency 'sqlite3'
+  spec.add_dependency 'activesupport', '>= 4.2.5'
+  spec.add_dependency 'activerecord', '>= 4.2.5'
   spec.add_development_dependency 'active_model_serializers', '~> 0.9.3'
   spec.add_dependency 'waterdrop', '~> 0.3.2.1'
   spec.add_development_dependency 'bundler', '~> 1.12'

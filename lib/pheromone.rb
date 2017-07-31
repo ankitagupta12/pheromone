@@ -1,7 +1,7 @@
 require 'pheromone/version'
 require 'pheromone/options_validator'
 require 'active_support'
-
+require 'waterdrop'
 # Usage: For publishing messages to kafka, include this concern
 # in the model and then add
 #
