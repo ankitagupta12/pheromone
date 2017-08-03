@@ -208,6 +208,42 @@ class PublishableModel < ActiveRecord::Base
 end
 ```
 
+### 5. Specifying producer options
+
+[Ruby-Kafka](https://github.com/zendesk/ruby-kafka) allows sending options to change the behaviour of Kafka Producer.
+
+These can be sent in by passing `producer_options` to the `publish` method:
+
+```
+class PublishableModel < ActiveRecord::Base
+  include Pheromone
+  publish [
+    {
+      event_types: [:create],
+      topic: :topic_test,
+      message: ->(obj) { { name: obj.name } },
+      producer_options: {
+        # The number of retries when attempting to deliver messages. The default is
+        # 2, so 3 attempts in total, but you can configure a higher or lower number:
+        max_retries: 5,
+        # The number of seconds to wait between retries. In order to handle longer
+        # periods of Kafka being unavailable, increase this number. The default is
+        # 1 second.
+        retry_backoff: 5,
+        # number of acknowledgements that the client should write to before returning
+        # possible values are :all, 0 or 1 and default behaviour is :all, requiring all
+        # replicas to acknowledge
+        required_acks: 1,
+        # compression can be enabled in order to improve bandwidth, and a minimum number
+        # of messages that need to be in the buffer before they are compressed can be 
+        # specified using compression threshold
+        compression_codec: :snappy,
+        compression_threshold: 10 
+      }
+    }
+  ]
+end
+```
 
 ## Development
 

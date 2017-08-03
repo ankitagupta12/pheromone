@@ -70,7 +70,8 @@ describe Pheromone do
           event_types: [:update],
           topic: :topic5,
           if: ->(data) { data.condition },
-          message: :message
+          message: :message,
+          producer_options: { required_acks: 1 }
         }
       ]
     end
@@ -122,13 +123,15 @@ describe Pheromone do
     let(:timestamp) { Time.local(2015, 3, 12, 8, 30) }
     let(:topics) { Set.new }
     let(:messages) { [] }
+    let(:producer_options) { [] }
 
     before do
       @invocation_count = 0
-      allow(WaterDrop::Message).to receive(:new) do |topic, message, _|
+      allow(WaterDrop::Message).to receive(:new) do |topic, message, options|
         @invocation_count += 1
         topics << topic
         messages << message
+        producer_options << options
         double(send!: nil)
       end
     end
@@ -160,6 +163,7 @@ describe Pheromone do
       before { Timecop.freeze(timestamp) { @model = PublishableModel.create(condition: true) } }
       it 'sends an extra message when events and condition matches' do
         expect(topics).to match_array(%i(topic1 topic2 topic4 topic5))
+        expect(producer_options).to match_array([{}, {}, {}, {}, { required_acks: 1 }])
       end
     end
   end

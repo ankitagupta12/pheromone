@@ -9,6 +9,13 @@ require 'waterdrop'
 #  publish message_options: [
 #            {
 #              topic: :topic1,
+#              producer_options: {
+#                max_retries: 5,
+#                retry_backoff: 5,
+#                compression_codec: :snappy,
+#                compression_threshold: 10,
+#                required_acks: 1
+#              }
 #              event_types: [:create, :update],
 #              message: { a: 1, b: 2 }
 #            },....
@@ -61,7 +68,8 @@ module Pheromone
   def send_message(options)
     WaterDrop::Message.new(
       options[:topic],
-      message_meta_data.merge!(blob: message_blob(options)).to_json
+      message_meta_data.merge!(blob: message_blob(options)).to_json,
+      options[:producer_options] || {}
     ).send!
   end
 
