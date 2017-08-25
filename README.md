@@ -70,7 +70,7 @@ The underlying Kafka client used by `pheromone` is `ruby-kafka`. This client pro
 
 It is advisable to use the normal producer in production systems because async producer provides no guarantees that the messages will be delivered. To read more on this, refer the `ruby-kafka` [documentation](https://github.com/zendesk/ruby-kafka#asynchronously-producing-messages)
 
-Even when using a synchronous producer, sometimes there might be a need to run send messages to Kafka in a background task. This is especially true for batch processing tasks that send a high message volume to Kafka. To allow for this, `pheromone` provides an `async` mode that can be specified with `publish` with `dispatch_method` as `:async`. By default, `dispatch_method` will be `:sync`. Specifying `:async` will still use the normal producer and NOT the async_producer.
+Even while using a synchronous producer, sometimes there might be a need to run send messages to Kafka in a background task. This is especially true for batch processing tasks that send a high message volume to Kafka. To allow for this, `pheromone` provides an `async` mode that can be specified as an option to `publish` by specifying `dispatch_method` as `:async`. By default, `dispatch_method` will be `:sync`. Specifying `:async` will still use the normal producer and NOT the async_producer.
   
 ```
 class PublishableModel < ActiveRecord::Base
@@ -111,6 +111,7 @@ Create a new class and add the name under `Pheromone.config.background_processor
    end
  end
 ```
+`pheromone` will invoke the class name specified in the config with the message object. This mode can be used if you don't want to block a request that ends up sending messages to Kafka.
 
 ### 2. Supported events
 #### 2.a. To send messages for model `create` event, add the following lines to your ActiveRecord model
