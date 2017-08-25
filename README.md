@@ -270,7 +270,7 @@ These can be sent in by passing `producer_options` to the `publish` method:
 
 ```
 class PublishableModel < ActiveRecord::Base
-  include Pheromone
+  include Pheromone::Publishable
   publish [
     {
       event_types: [:create],
