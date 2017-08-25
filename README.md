@@ -61,6 +61,7 @@ Edit this file to modify the default config. The following configuration options
 | connection_pool_timeout       | Integer       | Kafka connection pool timeout    |
 | raise_on_failure              | Boolean       | Should we raise an exception when we cannot send message to Kafka - if false will silently ignore failures (will just ignore them) |
 
+The timezone setting will transform any timestamp attributes in the message to the specified format.
 
 ## Usage
 
