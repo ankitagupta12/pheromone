@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 require 'spec_helper'
 
-describe OptionsValidator do
+describe Pheromone::Validators::OptionsValidator do
   context 'invalid fields' do
     it 'returns an error if message options are not an array' do
       message_options = {}
       expect(
-        OptionsValidator.new(message_options).validate
+        described_class.new(message_options).validate
       ).to match(message_options: 'Message options should be an array')
     end
 
@@ -81,6 +81,20 @@ describe OptionsValidator do
       expect(
         described_class.new(message_options).validate
       ).to match(message_attributes: 'Either serializer or message should be specified')
+    end
+
+    it 'returns an error message if the wrong dispatch method is passed' do
+      message_options = [
+        {
+          topic: :topic1,
+          event_types: %i(create update),
+          message: { a: 1 },
+          dispatch_method: :asynchronous
+        },
+      ]
+      expect(
+        described_class.new(message_options).validate
+      ).to match(dispatch_method: 'Invalid dispatch method')
     end
   end
 

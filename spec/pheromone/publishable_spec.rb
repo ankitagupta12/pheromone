@@ -1,6 +1,9 @@
 require 'spec_helper'
+require 'timecop'
+require 'waterdrop'
+require 'active_model_serializers'
 
-describe Pheromone do
+describe Pheromone::Publishable do
   class BaseSerializer < ActiveModel::Serializer
     attributes :title
 
@@ -19,14 +22,10 @@ describe Pheromone do
 
     # The model block works just like the class definition.
     model do
-      include Pheromone
+      include Pheromone::Publishable
 
       def message
         { name: name }
-      end
-
-      def name
-        'sample'
       end
 
       def type
@@ -42,7 +41,7 @@ describe Pheromone do
         {
           event_types: %i(create update),
           topic: :topic1,
-          message: -> {}
+          message: ->(obj) { { name: obj.name } }
         },
         {
           event_types: [:create, :update],
@@ -58,20 +57,20 @@ describe Pheromone do
         {
           event_types: [:create],
           topic: :topic3,
-          message: :message1
+          message: :message
         },
         {
           event_types: [:create],
           topic: :topic4,
           if: ->(data) { data.condition },
-          message: :message
+          message: :message,
+          producer_options: { required_acks: 1 }
         },
         {
           event_types: [:update],
           topic: :topic5,
           if: ->(data) { data.condition },
-          message: :message,
-          producer_options: { required_acks: 1 }
+          message: :message
         }
       ]
     end
@@ -82,21 +81,33 @@ describe Pheromone do
       {
         event: 'create',
         entity: 'PublishableModel',
-        timestamp: timestamp,
+        timestamp: '2015-03-12T00:30:00.000Z',
         blob: { name: 'sample' }
       }.to_json,
       {
         event: 'create',
         entity: 'PublishableModel',
-        timestamp: timestamp,
+        timestamp: '2015-03-12T00:30:00.000Z',
         blob: { name: 'sample' }
       }.to_json,
       {
         event: 'create',
         entity: 'PublishableModel',
-        timestamp: timestamp,
+        timestamp: '2015-03-12T00:30:00.000Z',
         blob: { title: 'title' }
-      }.to_json
+      }.to_json,
+      {
+        event: 'create',
+        entity: 'PublishableModel',
+        timestamp: '2015-03-12T00:30:00.000Z',
+        blob: { name: 'sample' }
+      }.to_json,
+      {
+        event: 'create',
+        entity: 'PublishableModel',
+        timestamp: '2015-03-12T00:30:00.000Z',
+        blob: { name: 'sample' }
+      }.to_json,
     ]
   end
 
@@ -104,19 +115,44 @@ describe Pheromone do
     model_create_messages.concat(
       [
         {
-          event: 'update',
+          event: 'create',
           entity: 'PublishableModel',
-          timestamp: timestamp,
+          timestamp: '2015-03-12T00:30:00.000Z',
           blob: { name: 'sample' }
         }.to_json,
         {
           event: 'update',
           entity: 'PublishableModel',
-          timestamp: timestamp,
+          timestamp: '2015-03-12T00:30:00.000Z',
+          blob: { name: 'new name' }
+        }.to_json,
+        {
+          event: 'update',
+          entity: 'PublishableModel',
+          timestamp: '2015-03-12T00:30:00.000Z',
+          blob: { name: 'new name' }
+        }.to_json,
+        {
+          event: 'update',
+          entity: 'PublishableModel',
+          timestamp: '2015-03-12T00:30:00.000Z',
           blob: { title: 'title' }
+        }.to_json,
+        {
+          event: 'update',
+          entity: 'PublishableModel',
+          timestamp: '2015-03-12T00:30:00.000Z',
+          blob: { name: 'new name' }
         }.to_json
       ]
     )
+  end
+
+  before do
+    Pheromone::Config.configure do |config|
+      config.message_format = :json
+      config.timezone = 'UTC'
+    end
   end
 
   context 'callback chain succeeds' do
@@ -138,32 +174,54 @@ describe Pheromone do
 
     context 'create' do
       before do
-        Timecop.freeze(timestamp) { @model = PublishableModel.create }
+        Timecop.freeze(timestamp) do
+          @model = PublishableModel.create(name: 'sample')
+        end
       end
 
       it 'sends messages on create' do
-        expect(@invocation_count).to eq(3)
-        expect(topics).to match_array(%i(topic1 topic2))
+        expect(@invocation_count).to eq(5)
+        expect(topics).to match_array(%i(topic1 topic2 topic3))
+        expect(messages).to match_array(model_create_messages)
+      end
+    end
+
+    context 'create' do
+      before do
+        Timecop.freeze(timestamp) do
+          @model = PublishableModel.create(name: 'sample')
+        end
+      end
+
+      it 'sends messages on create' do
+        expect(@invocation_count).to eq(5)
+        expect(topics).to match_array(%i(topic1 topic2 topic3))
         expect(messages).to match_array(model_create_messages)
       end
     end
 
     context 'update' do
       before do
-        Timecop.freeze(timestamp) { @model = PublishableModel.create }
+        Timecop.freeze(timestamp) do
+          @model = PublishableModel.create(condition: true, name: 'sample')
+        end
       end
       it 'sends messages on update' do
         Timecop.freeze(timestamp) { @model.update!(name: 'new name') }
-        expect(@invocation_count).to eq(5)
-        expect(topics).to match_array([:topic1, :topic2])
-        expect(messages).to match_array(model_update_messages)
+        expect(@invocation_count).to eq(10)
+        expect(topics).to match_array([:topic1, :topic2, :topic3, :topic4, :topic5])
+        expect(messages).to match(model_update_messages)
       end
     end
+
     context 'conditional publish' do
       before { Timecop.freeze(timestamp) { @model = PublishableModel.create(condition: true) } }
       it 'sends an extra message when events and condition matches' do
-        expect(topics).to match_array(%i(topic1 topic2 topic4 topic5))
-        expect(producer_options).to match_array([{}, {}, {}, {}, { required_acks: 1 }])
+        expect(@invocation_count).to eq(6)
+        expect(topics).to match_array(%i(topic1 topic2 topic3 topic4))
+        expect(producer_options).to match_array(
+          [{}, {}, {}, {}, {}, { required_acks: 1 }]
+        )
       end
     end
   end
@@ -173,7 +231,7 @@ describe Pheromone do
       @invocation_count = 0
       allow(WaterDrop::Message).to receive(:new) do
         @invocation_count += 1
-        instance_double(send!: nil)
+        double(send!: nil)
       end
     end
 
@@ -186,7 +244,7 @@ describe Pheromone do
         end
       end
       PublishableModel.create
-      expect(@invocation_count).to eq(3)
+      expect(@invocation_count).to eq(5)
       expect(PublishableModel.count).to eq(1)
     end
 

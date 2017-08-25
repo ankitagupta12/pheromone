@@ -1,0 +1,6 @@
+# class SidekiqJob
+#   include Sidekiq::Worker
+#   def perform(message)
+#     message.send!
+#   end
+# end

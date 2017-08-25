@@ -1,12 +1,14 @@
 # frozen_string_literal: true
+
+# frozen_string_literal: true
 require 'bundler'
 Bundler.setup
 
+require 'active_support'
 require 'pheromone'
 require 'timecop'
 require 'with_model'
 require 'waterdrop'
-require 'active_model_serializers'
 
 RSpec.configure do |config|
   config.extend WithModel
@@ -19,3 +21,4 @@ adapter = is_jruby ? 'jdbcsqlite3' : 'sqlite3'
 # If ActiveRecord already has a connection, as in a Rails app, this is unnecessary.
 require 'active_record'
 ActiveRecord::Base.establish_connection(adapter: adapter, database: ':memory:')
+

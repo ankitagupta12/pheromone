@@ -1,0 +1,7 @@
+# class ResqueJob
+#   @queue = :low
+#
+#   def self.perform(message)
+#     message.send!
+#   end
+# end
