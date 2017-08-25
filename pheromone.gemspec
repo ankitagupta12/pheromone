@@ -28,7 +28,6 @@ Gem::Specification.new do |spec|
 
   spec.add_development_dependency 'activesupport', '>= 4.2.5'
   spec.add_development_dependency 'generator_spec', '~> 0.9.3'
-  spec.add_development_dependency 'pry'
   spec.add_development_dependency 'rake', '~> 0'
   spec.add_development_dependency 'resque', '~> 1.26'
   spec.add_development_dependency 'rspec-rails', '~> 3.5'
