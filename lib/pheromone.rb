@@ -1,7 +1,5 @@
 require 'pheromone/publishable'
 require 'pheromone/config'
-require 'pheromone/jobs/sidekiq_base_job'
-require 'pheromone/jobs/resque_base_job'
 require 'pheromone/messaging/message'
 
 module Pheromone
