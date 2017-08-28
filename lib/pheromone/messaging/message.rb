@@ -3,7 +3,7 @@ require 'waterdrop'
 module Pheromone
   module Messaging
     class Message
-      def initialize(topic:, message:, options:)
+      def initialize(topic:, message:, options: {})
         @topic = topic
         @message = message
         @options = options
