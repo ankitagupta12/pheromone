@@ -7,7 +7,7 @@ module Pheromone
           'config/initializers/pheromone.rb',
           "Pheromone.setup do |config|\n"\
           "  # config.background_processor.name = ':resque / :sidekiq'\n"\
-          "  # config.background_processor.klass = 'BackgroundWorker'\n"\
+          "  # config.background_processor.klass = 'Pheromone::Jobs::ResqueBaseJob'\n"\
           "  # config.timezone = 'UTC'\n"\
           "  config.message_format = :json\n"\
           "  WaterDrop.setup do |config|\n"\

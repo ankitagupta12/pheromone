@@ -1,6 +1,6 @@
 require 'pheromone'
 require 'pheromone/messaging/message_formatter'
-require 'waterdrop'
+require 'pheromone/messaging/message'
 # This module is used for sending messages to Kafka
 # Dispatch method can be :sync or :async
 # When dispatch_method is async, the message object is passed to a job
@@ -35,12 +35,12 @@ module Pheromone
       end
 
       def message
-        ::WaterDrop::Message.new(
-          @message_parameters[:topic],
-          MessageFormatter.new(
+        Message.new(
+          topic: @message_parameters[:topic],
+          message: MessageFormatter.new(
             @message_parameters[:message]
           ).format,
-          @message_parameters[:producer_options] || {}
+          options: @message_parameters[:producer_options] || {}
         )
       end
 

@@ -1,8 +1,10 @@
+require 'resque'
+require 'sidekiq'
 require 'spec_helper'
 require 'pheromone/config'
 require 'pheromone/messaging/message_dispatcher'
-require 'resque'
-require 'sidekiq'
+require 'pheromone/jobs/sidekiq_base_job'
+require 'pheromone/jobs/resque_base_job'
 
 describe Pheromone::Messaging::MessageDispatcher do
   let(:message_parameters) do
@@ -16,17 +18,10 @@ describe Pheromone::Messaging::MessageDispatcher do
     context 'using resque' do
       before do
         @klass = @message = nil
-        class ResqueJob
-          @queue = :low
-
-          def self.perform(message)
-            message.send!
-          end
-        end
 
         Pheromone::Config.configure do |config|
           config.background_processor.name = :resque
-          config.background_processor.klass = 'ResqueJob'
+          config.background_processor.klass = 'Pheromone::Jobs::ResqueBaseJob'
           config.message_format = :json
         end
 
@@ -41,8 +36,8 @@ describe Pheromone::Messaging::MessageDispatcher do
           message_parameters: message_parameters,
           dispatch_method: :async
         ).dispatch
-        expect(@klass).to eq(ResqueJob)
-        expect(@message.topic).to eq('test_topic')
+        expect(@klass).to eq(Pheromone::Jobs::ResqueBaseJob)
+        expect(@message.topic).to eq(:test_topic)
         expect(@message.message).to eq("\"test_message\"")
         expect(@message.options).to eq({})
       end
@@ -51,20 +46,13 @@ describe Pheromone::Messaging::MessageDispatcher do
     context 'using sidekiq' do
       before do
         @message = nil
-        class SidekiqWorker
-          include Sidekiq::Worker
-          def perform(message)
-            message.send!
-          end
-        end
-
         Pheromone::Config.configure do |config|
           config.background_processor.name = :sidekiq
-          config.background_processor.klass = 'SidekiqWorker'
+          config.background_processor.klass = 'Pheromone::Jobs::SidekiqBaseJob'
           config.message_format = :json
         end
 
-        expect(SidekiqWorker).to receive(:perform_async) do |message|
+        expect(Pheromone::Jobs::SidekiqBaseJob).to receive(:perform_async) do |message|
           @message = message
         end
       end
@@ -73,7 +61,7 @@ describe Pheromone::Messaging::MessageDispatcher do
           message_parameters: message_parameters,
           dispatch_method: :async
         ).dispatch
-        expect(@message.topic).to eq('test_topic')
+        expect(@message.topic).to eq(:test_topic)
         expect(@message.message).to eq("\"test_message\"")
         expect(@message.options).to eq({})
       end
