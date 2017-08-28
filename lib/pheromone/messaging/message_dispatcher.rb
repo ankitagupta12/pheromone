@@ -37,9 +37,7 @@ module Pheromone
       def message
         Message.new(
           topic: @message_parameters[:topic],
-          message: MessageFormatter.new(
-            @message_parameters[:message]
-          ).format,
+          message: @message_parameters[:message],
           options: @message_parameters[:producer_options] || {}
         )
       end

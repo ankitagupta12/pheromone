@@ -1,11 +1,12 @@
 require 'waterdrop'
+
 # Encapsulates WaterDrop::Message
 module Pheromone
   module Messaging
     class Message
       def initialize(topic:, message:, options: {})
         @topic = topic
-        @message = message
+        @message = MessageFormatter.new(message).format
         @options = options
       end
 
