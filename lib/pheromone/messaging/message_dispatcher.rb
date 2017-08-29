@@ -1,6 +1,7 @@
 require 'pheromone'
 require 'pheromone/messaging/message_formatter'
 require 'pheromone/messaging/message'
+
 # This module is used for sending messages to Kafka
 # Dispatch method can be :sync or :async
 # When dispatch_method is async, the message object is passed to a job
