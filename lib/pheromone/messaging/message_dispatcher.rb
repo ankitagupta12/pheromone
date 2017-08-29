@@ -38,6 +38,7 @@ module Pheromone
         Message.new(
           topic: @message_parameters[:topic],
           message: @message_parameters[:message],
+          metadata: @message_parameters[:metadata],
           options: @message_parameters[:producer_options] || {}
         )
       end

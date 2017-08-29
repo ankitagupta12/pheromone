@@ -299,6 +299,43 @@ class PublishableModel < ActiveRecord::Base
 end
 ```
 
+### 7. Sending messages to Kafka directly
+
+`pheromone` provides a custom message object that sends messages to Kafka in a predefined format, to maintain consistency in the message fields.
+
+`Pheromone::Messaging::Message` can be initialized with the following arguments:
+ - `topic`: name of the topic to which the message is produced 
+ - `message`: the actual message itself
+ - `metadata`: any additional fields that must be sent along with the message
+ - `options`: producer options as described in Section 6
+ 
+ Of these fields, only `topic` and `message` are compulsory and the remaining two are optional.
+ 
+ Example usage:
+ 
+ ```
+   Pheromone::Messaging::Message.new(
+     topic: 'test_topic',
+     message: { message_text: 'test' },
+     metadata: { event_type: 'create' },
+     producer_options: { max_retries: 5 }
+   )
+ ```
+ 
+ This will send a message to `test_topic` in Kafka in the following format: 
+ 
+ ```
+  {
+    'event_type' => 'create',
+    'timestamp' => '2015-07-14T10:10:00.000+08:00',
+    'blob' => {
+      'message_text' => 'test'
+    }
+  }.to_json
+ ```
+
+As seen above `timestamp` will be added automatically to the main attributes along with the message metadata. The actual message will be encapsulated inside a key called `blob`.
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.

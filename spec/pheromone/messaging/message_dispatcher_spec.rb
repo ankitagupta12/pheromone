@@ -41,7 +41,7 @@ describe Pheromone::Messaging::MessageDispatcher do
         ).dispatch
         expect(@klass).to eq(ResqueJob)
         expect(@message.topic).to eq(:test_topic)
-        expect(@message.message).to eq("\"test_message\"")
+        expect(@message.message).to eq('test_message')
         expect(@message.options).to eq({})
       end
     end
@@ -69,11 +69,11 @@ describe Pheromone::Messaging::MessageDispatcher do
       end
       it 'invokes perform_async on sidekiq job with message fields' do
         described_class.new(
-            message_parameters: message_parameters,
-            dispatch_method: :async
+          message_parameters: message_parameters,
+          dispatch_method: :async
         ).dispatch
         expect(@message.topic).to eq(:test_topic)
-        expect(@message.message).to eq("\"test_message\"")
+        expect(@message.message).to eq('test_message')
         expect(@message.options).to eq({})
       end
     end
@@ -95,13 +95,17 @@ describe Pheromone::Messaging::MessageDispatcher do
       expect(instance_double).to receive(:send!)
     end
 
+    around { |example| Timecop.freeze(Time.local(2015, 7, 14, 10, 10), &example) }
+
     it 'sends message using waterdrop' do
       described_class.new(
-          message_parameters: message_parameters,
-          dispatch_method: :sync
+        message_parameters: message_parameters,
+        dispatch_method: :sync
       ).dispatch
       expect(@topic).to eq(:test_topic)
-      expect(@message).to eq("\"test_message\"")
+      expect(@message).to eq(
+        "{\"timestamp\":\"2015-07-14T02:10:00.000Z\",\"blob\":\"test_message\"}"
+      )
       expect(@options).to eq({})
     end
   end
