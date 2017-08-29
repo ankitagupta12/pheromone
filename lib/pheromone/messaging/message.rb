@@ -4,16 +4,30 @@ require 'waterdrop'
 module Pheromone
   module Messaging
     class Message
-      def initialize(topic:, message:, options: {})
+      def initialize(topic:, message:, metadata: {}, options: {})
         @topic = topic
-        @message = MessageFormatter.new(message).format
-        @options = options
+        @message = message
+        @options = options || {}
+        @metadata = metadata || {}
       end
 
-      attr_reader :topic, :message, :options
+      attr_reader :topic, :message, :options, :metadata
 
       def send!
-        ::WaterDrop::Message.new(topic, message, options).send!
+        ::WaterDrop::Message.new(
+          topic,
+          MessageFormatter.new(full_message).format,
+          options
+        ).send!
+      end
+
+      private
+
+      def full_message
+        @metadata.merge!(
+          timestamp: Time.now,
+          blob: @message
+        )
       end
     end
   end

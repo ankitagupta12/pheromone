@@ -66,11 +66,14 @@ module Pheromone
         options[:event_types].any? { |event| event == current_event }
       end
 
+      # Manages the actual formatting and sending of messages. By default messages are sent in
+      # sync mode. To override this, provide dispatch_method as :async
       def send_message(options)
         Pheromone::Messaging::MessageDispatcher.new(
           message_parameters: {
             topic: options[:topic],
-            message: message_meta_data.merge!(blob: message_blob(options)),
+            message: message_blob(options),
+            metadata: message_meta_data,
             producer_options: options[:producer_options]
           },
           dispatch_method: options[:dispatch_method] || :sync
@@ -80,8 +83,7 @@ module Pheromone
       def message_meta_data
         {
           event: current_event,
-          entity: self.class.name,
-          timestamp: Time.now
+          entity: self.class.name
         }
       end
 
