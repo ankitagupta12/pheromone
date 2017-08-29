@@ -1,6 +1,7 @@
 require 'resque'
 require 'sidekiq'
 require 'spec_helper'
+require 'pheromone/messaging/message'
 require 'pheromone/config'
 
 describe Pheromone::Messaging::MessageDispatcher do
@@ -18,8 +19,13 @@ describe Pheromone::Messaging::MessageDispatcher do
         class ResqueJob
           @queue = :low
 
-          def self.perform(message)
-            message.send!
+          def self.perform(topic:, message:, metadata: {}, options: {})
+            Pheromone::Messaging::Message.new(
+              topic: topic,
+              message: message,
+              metadata: metadata,
+              options: options
+            ).send!
           end
         end
         Pheromone::Config.configure do |config|
@@ -40,9 +46,9 @@ describe Pheromone::Messaging::MessageDispatcher do
           dispatch_method: :async
         ).dispatch
         expect(@klass).to eq(ResqueJob)
-        expect(@message.topic).to eq(:test_topic)
-        expect(@message.message).to eq('test_message')
-        expect(@message.options).to eq({})
+        expect(@message[:topic]).to eq(:test_topic)
+        expect(@message[:message]).to eq('test_message')
+        expect(@message[:options]).to eq({})
       end
     end
 
@@ -52,8 +58,13 @@ describe Pheromone::Messaging::MessageDispatcher do
         class SidekiqWorker
           include Sidekiq::Worker
 
-          def perform(message)
-            message.send!
+          def perform(topic:, message:, metadata: {}, options: {})
+            Pheromone::Messaging::Message.new(
+              topic: topic,
+              message: message,
+              metadata: metadata,
+              options: options
+            ).send!
           end
         end
 
@@ -72,9 +83,9 @@ describe Pheromone::Messaging::MessageDispatcher do
           message_parameters: message_parameters,
           dispatch_method: :async
         ).dispatch
-        expect(@message.topic).to eq(:test_topic)
-        expect(@message.message).to eq('test_message')
-        expect(@message.options).to eq({})
+        expect(@message[:topic]).to eq(:test_topic)
+        expect(@message[:message]).to eq('test_message')
+        expect(@message[:options]).to eq({})
       end
     end
   end

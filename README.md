@@ -96,8 +96,13 @@ Create a new class and add the name under `Pheromone.config.background_processor
  class ResqueJob
    @queue = :low
 
-   def self.perform(message)
-     message.send!
+   def self.perform(topic:, message:, metadata: {}, options: {})
+     Pheromone::Messaging::Message.new(
+       topic: topic,
+       message: message,
+       metadata: metadata,
+       options: options
+     ).send!
    end
  end
 ```
@@ -107,8 +112,13 @@ Create a new class and add the name under `Pheromone.config.background_processor
 ```
  class SidekiqJob
    include Sidekiq::Worker
-   def perform(message)
-     message.send!
+   def perform(topic:, message:, metadata: {}, options: {})
+     Pheromone::Messaging::Message.new(
+       topic: topic,
+       message: message,
+       metadata: metadata,
+       options: options
+     ).send!
    end
  end
 ```

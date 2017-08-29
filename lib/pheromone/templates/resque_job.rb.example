@@ -1,7 +1,12 @@
 # class ResqueJob
 #   @queue = :low
 #
-#   def self.perform(message)
-#     message.send!
+#   def self.perform(topic:, message:, metadata: {}, options: {})
+#     Pheromone::Messaging::Message.new(
+#        topic: topic,
+#        message: message,
+#        metadata: metadata,
+#        options: options
+#      ).send!
 #   end
 # end
