@@ -319,7 +319,7 @@ end
      message: { message_text: 'test' },
      metadata: { event_type: 'create' },
      producer_options: { max_retries: 5 }
-   )
+   ).send!
  ```
  
  This will send a message to `test_topic` in Kafka in the following format: 
