@@ -1,6 +1,7 @@
 require 'pheromone'
 require 'pheromone/messaging/message_formatter'
 require 'pheromone/messaging/message'
+
 # This module is used for sending messages to Kafka
 # Dispatch method can be :sync or :async
 # When dispatch_method is async, the message object is passed to a job
@@ -28,19 +29,23 @@ module Pheromone
       # messages to Kafka
       def send_message_asynchronously
         if background_processor.name == :resque
-          Resque.enqueue(background_processor_klass, message)
+          Resque.enqueue(background_processor_klass, message_body)
         elsif background_processor.name == :sidekiq
-          background_processor_klass.perform_async(message)
+          background_processor_klass.perform_async(message_body)
         end
       end
 
       def message
-        Message.new(
+        Message.new(message_body)
+      end
+
+      def message_body
+        {
           topic: @message_parameters[:topic],
           message: @message_parameters[:message],
           metadata: @message_parameters[:metadata],
           options: @message_parameters[:producer_options] || {}
-        )
+        }
       end
 
       def background_processor
