@@ -26,7 +26,7 @@ describe Pheromone::Messaging::Message do
     it 'uses default metadata' do
       message_object = described_class.new(
         topic: @topic,
-        message: @message,
+        blob: @message,
         options: @options
       )
       expect(WaterDrop::Message).to receive(:new).with(
@@ -51,7 +51,7 @@ describe Pheromone::Messaging::Message do
     it 'uses default options' do
       message_object = described_class.new(
         topic: @topic,
-        message: @message,
+        blob: @message,
         metadata: @meta_data
       )
       expect(WaterDrop::Message).to receive(:new).with(
@@ -77,7 +77,7 @@ describe Pheromone::Messaging::Message do
     it 'sends all the message data to waterdrop' do
       message_object = described_class.new(
         topic: @topic,
-        message: @message,
+        blob: @message,
         metadata: @meta_data,
         options: @options
       )

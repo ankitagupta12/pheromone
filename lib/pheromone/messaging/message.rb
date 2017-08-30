@@ -4,14 +4,14 @@ require 'waterdrop'
 module Pheromone
   module Messaging
     class Message
-      def initialize(topic:, message:, metadata: {}, options: {})
+      def initialize(topic:, blob:, metadata: {}, options: {})
         @topic = topic
-        @message = message
+        @blob = blob
         @options = options || {}
         @metadata = metadata || {}
       end
 
-      attr_reader :topic, :message, :options, :metadata
+      attr_reader :topic, :blob, :options, :metadata
 
       def send!
         ::WaterDrop::Message.new(
@@ -26,7 +26,7 @@ module Pheromone
       def full_message
         @metadata.merge!(
           timestamp: Time.now,
-          blob: @message
+          blob: @blob
         )
       end
     end

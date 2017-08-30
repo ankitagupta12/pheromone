@@ -42,7 +42,7 @@ module Pheromone
       def message_body
         {
           topic: @message_parameters[:topic],
-          message: @message_parameters[:message],
+          blob: @message_parameters[:blob],
           metadata: @message_parameters[:metadata],
           options: @message_parameters[:producer_options] || {}
         }
