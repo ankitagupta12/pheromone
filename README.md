@@ -99,7 +99,7 @@ Create a new class and add the name under `Pheromone.config.background_processor
    def self.perform(message_object)
      Pheromone::Messaging::Message.new(
        topic: message_object[:topic],
-       message: message_object[:message],
+       blob: message_object[:message],
        metadata: message_object[:metadata],
        options: message_object[:options]
      ).send!
@@ -115,7 +115,7 @@ Create a new class and add the name under `Pheromone.config.background_processor
    def perform(message_object)
      Pheromone::Messaging::Message.new(
        topic: message_object[:topic],
-       message: message_object[:message],
+       blob: message_object[:message],
        metadata: message_object[:metadata],
        options: message_object[:options]
      ).send!
@@ -315,7 +315,7 @@ end
 
 `Pheromone::Messaging::Message` can be initialized with the following arguments:
  - `topic`: name of the topic to which the message is produced 
- - `message`: the actual message itself
+ - `blob`: the actual message itself
  - `metadata`: any additional fields that must be sent along with the message
  - `options`: producer options as described in Section 6
  
@@ -326,7 +326,7 @@ end
  ```
    Pheromone::Messaging::Message.new(
      topic: 'test_topic',
-     message: { message_text: 'test' },
+     blob: { message_text: 'test' },
      metadata: { event_type: 'create' },
      producer_options: { max_retries: 5 }
    ).send!
