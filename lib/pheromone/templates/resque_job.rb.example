@@ -3,10 +3,10 @@
 #
 #   def self.perform(message_object)
 #     Pheromone::Messaging::Message.new(
-#        topic: message_object[:topic],
-#        blob: message_object[:message],
-#        metadata: message_object[:metadata],
-#        options: message_object[:options]
+#        topic: message_object['topic'],
+#        blob: message_object['message'],
+#        metadata: message_object['metadata'],
+#        options: message_object['options']
 #      ).send!
 #   end
 # end
