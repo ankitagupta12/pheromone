@@ -72,7 +72,7 @@ module Pheromone
         Pheromone::Messaging::MessageDispatcher.new(
           message_parameters: {
             topic: options[:topic],
-            message: message_blob(options),
+            blob: message_blob(options),
             metadata: message_meta_data,
             producer_options: options[:producer_options]
           },

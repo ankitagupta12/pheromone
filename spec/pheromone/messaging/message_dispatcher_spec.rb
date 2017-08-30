@@ -8,7 +8,7 @@ describe Pheromone::Messaging::MessageDispatcher do
   let(:message_parameters) do
     {
       topic: :test_topic,
-      message: 'test_message'
+      blob: 'test_message'
     }
   end
 
@@ -22,7 +22,7 @@ describe Pheromone::Messaging::MessageDispatcher do
           def self.perform(topic:, message:, metadata: {}, options: {})
             Pheromone::Messaging::Message.new(
               topic: topic,
-              message: message,
+              blob: message,
               metadata: metadata,
               options: options
             ).send!
@@ -47,7 +47,7 @@ describe Pheromone::Messaging::MessageDispatcher do
         ).dispatch
         expect(@klass).to eq(ResqueJob)
         expect(@message[:topic]).to eq(:test_topic)
-        expect(@message[:message]).to eq('test_message')
+        expect(@message[:blob]).to eq('test_message')
         expect(@message[:options]).to eq({})
       end
     end
@@ -61,7 +61,7 @@ describe Pheromone::Messaging::MessageDispatcher do
           def perform(topic:, message:, metadata: {}, options: {})
             Pheromone::Messaging::Message.new(
               topic: topic,
-              message: message,
+              blob: message,
               metadata: metadata,
               options: options
             ).send!
@@ -84,7 +84,7 @@ describe Pheromone::Messaging::MessageDispatcher do
           dispatch_method: :async
         ).dispatch
         expect(@message[:topic]).to eq(:test_topic)
-        expect(@message[:message]).to eq('test_message')
+        expect(@message[:blob]).to eq('test_message')
         expect(@message[:options]).to eq({})
       end
     end
