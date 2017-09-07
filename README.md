@@ -31,19 +31,19 @@ In order to setup `pheromone`, both `waterdrop` and `pheromone` need to be setup
 This will generate the following file in `config/initializers/pheromone.rb`
 
 ```
-Pheromone.setup do |config|
-  #config.background_processor.name = ':resque / :sidekiq'
-  #config.background_processor.klass = 'BackgroundWorker'
-  config.timezone_format = 'UTC'
-  config.message_format = :json
-  WaterDrop.setup do |config|
-    config.send_messages = Rails.env.production?
-    config.connection_pool_size = 20
-    config.connection_pool_timeout = 1
-    config.kafka.hosts = [Rails.env.production? ? ENV['KAFKA_HOST'] : 'localhost:9092']
-    config.raise_on_failure = Rails.env.production?
-  end
-end
+"Pheromone.setup do |pheromone_config|\n"\
+  "  # pheromone_config.background_processor.name = ':resque / :sidekiq'\n"\
+  "  # pheromone_config.background_processor.klass = 'BackgroundWorker'\n"\
+  "  # pheromone_config.timezone = 'UTC'\n"\
+  "  pheromone_config.message_format = :json\n"\
+  "  WaterDrop.setup do |waterdrop_config|\n"\
+  "    waterdrop_config.send_messages = Rails.env.production?\n"\
+  "    waterdrop_config.connection_pool.size = 20\n"\
+  "    waterdrop_config.connection_pool.timeout = 1\n"\
+  "    waterdrop_config.kafka.seed_brokers = [Rails.env.production? ? ENV['KAFKA_HOST'] : 'localhost:9092']\n"\
+  "    waterdrop_config.raise_on_failure = Rails.env.production?\n"\
+  "  end\n"\
+"end"\
 ```
 
 Edit this file to modify the default config. The following configuration options are available:
@@ -99,7 +99,7 @@ Create a new class and add the name under `Pheromone.config.background_processor
    def self.perform(message_object)
      Pheromone::Messaging::Message.new(
        topic: message_object['topic'],
-       blob: message_object['message'],
+       blob: message_object['blob'],
        metadata: message_object['metadata'],
        options: message_object['options']
      ).send!
@@ -115,7 +115,7 @@ Create a new class and add the name under `Pheromone.config.background_processor
    def perform(message_object)
      Pheromone::Messaging::Message.new(
        topic: message_object['topic'],
-       blob: message_object['message'],
+       blob: message_object['blob'],
        metadata: message_object['metadata'],
        options: message_object['options']
      ).send!
