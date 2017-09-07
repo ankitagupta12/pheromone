@@ -24,11 +24,10 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activerecord', '>= 4.2.5'
   spec.add_dependency 'bundler', '>= 0'
   spec.add_dependency 'dry-configurable', '~> 0.5'
-  spec.add_dependency 'waterdrop', '~> 0.3.2.1'
+  spec.add_dependency 'waterdrop', '>= 0.4'
 
   spec.add_development_dependency 'activesupport', '>= 4.2.5'
   spec.add_development_dependency 'generator_spec', '~> 0.9.3'
-  spec.add_development_dependency 'rake', '~> 0'
   spec.add_development_dependency 'resque', '~> 1.26'
   spec.add_development_dependency 'rspec-rails', '~> 3.5'
   spec.add_development_dependency 'sidekiq'

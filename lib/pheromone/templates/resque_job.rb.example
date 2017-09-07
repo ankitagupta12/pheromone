@@ -4,7 +4,7 @@
 #   def self.perform(message_object)
 #     Pheromone::Messaging::Message.new(
 #        topic: message_object['topic'],
-#        blob: message_object['message'],
+#        blob: message_object['blob'],
 #        metadata: message_object['metadata'],
 #        options: message_object['options']
 #      ).send!
