@@ -20,7 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'active_model_serializers', '~> 0.9'
+  spec.add_dependency 'active_model_serializers', '>= 0.9'
   spec.add_dependency 'activerecord', '>= 4.2.5'
   spec.add_dependency 'bundler', '>= 0'
   spec.add_dependency 'dry-configurable', '>= 0.5'
