@@ -39,56 +39,61 @@ module Pheromone
           message_options
         ).validate
         raise Pheromone::Exceptions::InvalidPublishOptions.new(errors) unless errors.empty?
-        __send__(:after_commit, proc { dispatch_messages(message_options: message_options) })
+        __send__(
+          :after_commit,
+          proc { dispatch_messages(message_options: message_options, current_event: :create) },
+          on: :create
+        )
+        __send__(
+          :after_commit,
+          proc { dispatch_messages(message_options: message_options, current_event: :update) },
+          on: :update
+        )
       end
     end
 
     module InstanceMethods
       include Pheromone::MethodInvoker
 
-      def dispatch_messages(message_options:)
+      def dispatch_messages(message_options:, current_event:)
         message_options.each do |options|
-          next unless check_conditions(options)
-          send_message(options)
+          next unless check_conditions(options, current_event)
+          send_message(options, current_event)
         end
       end
 
       private
 
-      def check_conditions(options)
+      def check_conditions(options, current_event)
         condition_callback = options[:if]
-        result = check_event(options)
+        result = check_event(options, current_event)
         return result unless condition_callback
         result && call_proc_or_instance_method(condition_callback)
       end
 
-      def check_event(options)
+      def check_event(options, current_event)
         options[:event_types].any? { |event| event == current_event }
       end
 
       # Manages the actual formatting and sending of messages. By default messages are sent in
       # sync mode. To override this, provide dispatch_method as :async
-      def send_message(options)
+      def send_message(options, current_event)
         Pheromone::Messaging::MessageDispatcher.new(
           message_parameters: {
             topic: options[:topic],
             blob: message_blob(options),
-            metadata: message_meta_data,
+            metadata: message_meta_data(current_event),
             producer_options: options[:producer_options]
           },
           dispatch_method: options[:dispatch_method] || :sync
         ).dispatch
       end
 
-      def message_meta_data
+      def message_meta_data(current_event)
         {
           event: current_event,
           entity: self.class.name
         }
-      end
-
-      def current_event
-        id_previously_changed? ? :create : :update
       end
 
       def message_blob(options)
