@@ -1,5 +1,3 @@
-require 'waterdrop'
-
 # Encapsulates WaterDrop::Message
 module Pheromone
   module Messaging
@@ -14,10 +12,9 @@ module Pheromone
       attr_reader :topic, :blob, :options, :metadata
 
       def send!
-        ::WaterDrop::Message.new(
-          topic,
+        WaterDrop::SyncProducer.call(
           MessageFormatter.new(full_message).format,
-          options
+          { topic: topic }.merge!(options)
         ).send!
       end
 

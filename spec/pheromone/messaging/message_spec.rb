@@ -29,8 +29,7 @@ describe Pheromone::Messaging::Message do
         blob: @message,
         options: @options
       )
-      expect(WaterDrop::Message).to receive(:new).with(
-        :test,
+      expect(WaterDrop::SyncProducer).to receive(:call).with(
         {
           'timestamp' => '2015-07-14T10:10:00.000+08:00',
           'blob' => {
@@ -41,7 +40,7 @@ describe Pheromone::Messaging::Message do
             }
           }
         }.to_json,
-        { max_retries: 5 }
+        { topic: :test }.merge!(max_retries: 5)
       ).and_return(double(send!: nil))
       message_object.send!
     end
@@ -54,8 +53,7 @@ describe Pheromone::Messaging::Message do
         blob: @message,
         metadata: @meta_data
       )
-      expect(WaterDrop::Message).to receive(:new).with(
-        :test,
+      expect(WaterDrop::SyncProducer).to receive(:call).with(
         {
           'event_name' => 'create',
           'timestamp' => '2015-07-14T10:10:00.000+08:00',
@@ -67,7 +65,7 @@ describe Pheromone::Messaging::Message do
             }
           }
         }.to_json,
-        {}
+        topic: :test
       ).and_return(double(send!: nil))
       message_object.send!
     end
@@ -81,8 +79,7 @@ describe Pheromone::Messaging::Message do
         metadata: @meta_data,
         options: @options
       )
-      expect(WaterDrop::Message).to receive(:new).with(
-        :test,
+      expect(WaterDrop::SyncProducer).to receive(:new).with(
         {
           'event_name' => 'create',
           'timestamp' => '2015-07-14T10:10:00.000+08:00',
@@ -94,7 +91,7 @@ describe Pheromone::Messaging::Message do
             }
           }
         }.to_json,
-        { max_retries: 5 }
+        { topic: :test }.merge!(max_retries: 5)
       ).and_return(double(send!: nil))
       message_object.send!
     end

@@ -28,22 +28,22 @@ In order to setup `pheromone`, both `waterdrop` and `pheromone` need to be setup
 
     $ bundle exec rails generate pheromone:initializer
 
-This will generate the following file in `config/initializers/pheromone.rb`
+This will generate the following in `config/initializers/pheromone.rb`
 
 ```
-"Pheromone.setup do |pheromone_config|\n"\
-  "  # pheromone_config.background_processor.name = ':resque / :sidekiq'\n"\
-  "  # pheromone_config.background_processor.klass = 'BackgroundWorker'\n"\
-  "  # pheromone_config.timezone = 'UTC'\n"\
-  "  pheromone_config.message_format = :json\n"\
-  "  WaterDrop.setup do |waterdrop_config|\n"\
-  "    waterdrop_config.send_messages = Rails.env.production?\n"\
-  "    waterdrop_config.connection_pool.size = 20\n"\
-  "    waterdrop_config.connection_pool.timeout = 1\n"\
-  "    waterdrop_config.kafka.seed_brokers = [Rails.env.production? ? ENV['KAFKA_HOST'] : 'localhost:9092']\n"\
-  "    waterdrop_config.raise_on_failure = Rails.env.production?\n"\
-  "  end\n"\
-"end"\
+Pheromone.setup do |pheromone_config|
+  # pheromone_config.background_processor.name = ':resque / :sidekiq'
+  # pheromone_config.background_processor.klass = 'BackgroundWorker'
+  # pheromone_config.timezone = 'UTC'
+  pheromone_config.message_format = :json
+    WaterDrop.setup do |waterdrop_config|
+      waterdrop_config.send_messages = Rails.env.production?
+      waterdrop_config.connection_pool.size = 20
+      waterdrop_config.connection_pool.timeout = 1
+      waterdrop_config.kafka.seed_brokers = [Rails.env.production? ? ENV['KAFKA_HOST'] : 'localhost:9092']
+      waterdrop_config.raise_on_failure = Rails.env.production?
+    end
+end
 ```
 
 Edit this file to modify the default config. The following configuration options are available:

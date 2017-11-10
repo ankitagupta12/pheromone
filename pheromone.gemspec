@@ -24,7 +24,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'activerecord', '>= 4.2.5'
   spec.add_dependency 'bundler', '>= 0'
   spec.add_dependency 'dry-configurable', '>= 0.5'
-  spec.add_dependency 'waterdrop', '>= 0.4'
+  spec.add_dependency 'waterdrop', '>= 1.0'
 
   spec.add_development_dependency 'activesupport', '>= 4.2.5'
   spec.add_development_dependency 'generator_spec', '~> 0.9.3'

@@ -1,6 +1,5 @@
 require 'spec_helper'
 require 'timecop'
-require 'waterdrop'
 require 'active_model_serializers'
 
 describe Pheromone::Publishable do
