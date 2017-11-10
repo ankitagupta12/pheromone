@@ -5,6 +5,9 @@ describe Pheromone::Messaging::Message do
     Pheromone::Config.configure do |config|
       config.message_format = :json
       config.timezone = 'Singapore'
+      WaterDrop::Config.configure do |waterdrop_config|
+        waterdrop_config.deliver = false
+      end
     end
     @message = {
       server_time: Time.zone,
@@ -16,7 +19,7 @@ describe Pheromone::Messaging::Message do
     @meta_data = {
       event_name: 'create'
     }
-    @options = { max_retries: 5 }
+    @options = { key: 'key' }
     @topic = :test
   end
 
@@ -40,8 +43,8 @@ describe Pheromone::Messaging::Message do
             }
           }
         }.to_json,
-        { topic: :test }.merge!(max_retries: 5)
-      ).and_return(double(send!: nil))
+        { topic: 'test' }.merge!(@options)
+      )
       message_object.send!
     end
   end
@@ -65,8 +68,8 @@ describe Pheromone::Messaging::Message do
             }
           }
         }.to_json,
-        topic: :test
-      ).and_return(double(send!: nil))
+        topic: 'test'
+      )
       message_object.send!
     end
   end
@@ -79,7 +82,7 @@ describe Pheromone::Messaging::Message do
         metadata: @meta_data,
         options: @options
       )
-      expect(WaterDrop::SyncProducer).to receive(:new).with(
+      expect(WaterDrop::SyncProducer).to receive(:call).with(
         {
           'event_name' => 'create',
           'timestamp' => '2015-07-14T10:10:00.000+08:00',
@@ -91,8 +94,8 @@ describe Pheromone::Messaging::Message do
             }
           }
         }.to_json,
-        { topic: :test }.merge!(max_retries: 5)
-      ).and_return(double(send!: nil))
+        { topic: 'test' }.merge!(@options)
+      )
       message_object.send!
     end
   end

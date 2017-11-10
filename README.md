@@ -36,12 +36,9 @@ Pheromone.setup do |pheromone_config|
   # pheromone_config.background_processor.klass = 'BackgroundWorker'
   # pheromone_config.timezone = 'UTC'
   pheromone_config.message_format = :json
-    WaterDrop.setup do |waterdrop_config|
-      waterdrop_config.send_messages = Rails.env.production?
-      waterdrop_config.connection_pool.size = 20
-      waterdrop_config.connection_pool.timeout = 1
+    WaterDrop.setup do |waterdrop_config|    
+      waterdrop_config.deliver = Rails.env.production?
       waterdrop_config.kafka.seed_brokers = [Rails.env.production? ? ENV['KAFKA_HOST'] : 'localhost:9092']
-      waterdrop_config.raise_on_failure = Rails.env.production?
     end
 end
 ```
@@ -55,11 +52,6 @@ Edit this file to modify the default config. The following configuration options
 | background_processor.klass    | String        | Background processor class name that sends messages to kafka |
 | timezone_format               | String        | Valid timezone name for timestamps sent to kafka |
 | message_format                | Symbol        | Only supports :json format currently |
-| send_messages                 | Boolean       | Should we send messages to Kafka |
-| kafka.hosts                   | Array<String> | Kafka servers hosts with ports   |
-| connection_pool_size          | Integer       | Kafka connection pool size       |
-| connection_pool_timeout       | Integer       | Kafka connection pool timeout    |
-| raise_on_failure              | Boolean       | Should we raise an exception when we cannot send message to Kafka - if false will silently ignore failures (will just ignore them) |
 
 The timezone setting will transform any timestamp attributes in the message to the specified format.
 
@@ -287,22 +279,9 @@ class PublishableModel < ActiveRecord::Base
       topic: :topic_test,
       message: ->(obj) { { name: obj.name } },
       producer_options: {
-        # The number of retries when attempting to deliver messages. The default is
-        # 2, so 3 attempts in total, but you can configure a higher or lower number:
-        max_retries: 5,
-        # The number of seconds to wait between retries. In order to handle longer
-        # periods of Kafka being unavailable, increase this number. The default is
-        # 1 second.
-        retry_backoff: 5,
-        # number of acknowledgements that the client should write to before returning
-        # possible values are :all, 0 or 1 and default behaviour is :all, requiring all
-        # replicas to acknowledge
-        required_acks: 1,
-        # compression can be enabled in order to improve bandwidth, and a minimum number
-        # of messages that need to be in the buffer before they are compressed can be 
-        # specified using compression threshold
-        compression_codec: :snappy,
-        compression_threshold: 10 
+        key: 'key',
+        partition: 1,
+        partition_key: 'key'
       }
     }
   ]

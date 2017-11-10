@@ -1,6 +1,7 @@
 require 'pheromone/publishable'
 require 'pheromone/config'
 require 'pheromone/messaging/message'
+require 'rails/railtie'
 require 'waterdrop'
 
 module Pheromone

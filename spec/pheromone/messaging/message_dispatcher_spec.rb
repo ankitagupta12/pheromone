@@ -98,12 +98,11 @@ describe Pheromone::Messaging::MessageDispatcher do
         config.message_format = :json
       end
 
-      expect(WaterDrop::Message).to receive(:new) do |topic, message, options|
-        @topic = topic
+      expect(WaterDrop::SyncProducer).to receive(:call) do |message, options|
+        @topic = options[:topic]
         @message = message
-        @options = options
+        @options = options.except(:topic)
       end.and_return(instance_double)
-      expect(instance_double).to receive(:send!)
     end
 
     around { |example| Timecop.freeze(Time.local(2015, 7, 14, 10, 10), &example) }
@@ -113,7 +112,7 @@ describe Pheromone::Messaging::MessageDispatcher do
         message_parameters: message_parameters,
         dispatch_method: :sync
       ).dispatch
-      expect(@topic).to eq(:test_topic)
+      expect(@topic).to eq('test_topic')
       expect(@message).to eq(
         "{\"timestamp\":\"2015-07-14T02:10:00.000Z\",\"blob\":\"test_message\"}"
       )

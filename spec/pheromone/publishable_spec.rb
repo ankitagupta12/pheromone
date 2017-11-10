@@ -34,40 +34,40 @@ describe Pheromone::Publishable do
       publish [
         {
           event_types: %i(create update),
-          topic: :topic1,
+          topic: 'topic1',
           message: ->(obj) { { name: obj.name } }
         },
         {
           event_types: %i(create update),
-          topic: :topic1,
+          topic: 'topic1',
           message: ->(obj) { { name: obj.name } }
         },
         {
           event_types: [:create, :update],
-          topic: :topic1,
+          topic: 'topic1',
           serializer: BaseSerializer,
           serlializer_options: { scope: '' }
         },
         {
           event_types: [:create],
-          topic: :topic2,
+          topic: 'topic2',
           message: :message
         },
         {
           event_types: [:create],
-          topic: :topic3,
+          topic: 'topic3',
           message: :message
         },
         {
           event_types: [:create],
-          topic: :topic4,
+          topic: 'topic4',
           if: ->(data) { data.condition },
           message: :message,
           producer_options: { required_acks: 1 }
         },
         {
           event_types: [:update],
-          topic: :topic5,
+          topic: 'topic5',
           if: ->(data) { data.condition },
           message: :message
         }
@@ -162,11 +162,11 @@ describe Pheromone::Publishable do
 
     before do
       @invocation_count = 0
-      allow(WaterDrop::Message).to receive(:new) do |topic, message, options|
+      allow(WaterDrop::SyncProducer).to receive(:call) do |message, options|
         @invocation_count += 1
-        topics << topic
+        topics << options[:topic]
         messages << message
-        producer_options << options
+        producer_options << options.except(:topic)
         double(send!: nil)
       end
     end
@@ -180,7 +180,7 @@ describe Pheromone::Publishable do
 
       it 'sends messages on create' do
         expect(@invocation_count).to eq(5)
-        expect(topics).to match_array(%i(topic1 topic2 topic3))
+        expect(topics).to match_array(%w(topic1 topic2 topic3))
         expect(messages).to match_array(model_create_messages)
       end
     end
@@ -194,7 +194,7 @@ describe Pheromone::Publishable do
 
       it 'sends messages on create' do
         expect(@invocation_count).to eq(5)
-        expect(topics).to match_array(%i(topic1 topic2 topic3))
+        expect(topics).to match_array(%w(topic1 topic2 topic3))
         expect(messages).to match_array(model_create_messages)
       end
     end
@@ -208,7 +208,7 @@ describe Pheromone::Publishable do
       it 'sends messages on update' do
         Timecop.freeze(timestamp) { @model.update!(name: 'new name') }
         expect(@invocation_count).to eq(10)
-        expect(topics).to match_array([:topic1, :topic2, :topic3, :topic4, :topic5])
+        expect(topics).to match_array(%w(topic1 topic2 topic3 topic4 topic5))
         expect(messages).to match(model_update_messages)
       end
     end
@@ -217,7 +217,7 @@ describe Pheromone::Publishable do
       before { Timecop.freeze(timestamp) { @model = PublishableModel.create(condition: true) } }
       it 'sends an extra message when events and condition matches' do
         expect(@invocation_count).to eq(6)
-        expect(topics).to match_array(%i(topic1 topic2 topic3 topic4))
+        expect(topics).to match_array(%w(topic1 topic2 topic3 topic4))
         expect(producer_options).to match_array(
           [{}, {}, {}, {}, {}, { required_acks: 1 }]
         )
@@ -228,9 +228,8 @@ describe Pheromone::Publishable do
   context 'callback chain fails' do
     before do
       @invocation_count = 0
-      allow(WaterDrop::Message).to receive(:new) do
+      allow(WaterDrop::SyncProducer).to receive(:call) do
         @invocation_count += 1
-        double(send!: nil)
       end
     end
 

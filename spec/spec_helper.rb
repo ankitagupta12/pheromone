@@ -9,6 +9,7 @@ require 'active_support'
 require 'pheromone'
 require 'timecop'
 require 'with_model'
+require 'rails/railtie'
 require 'waterdrop'
 
 RSpec.configure do |config|

@@ -21,11 +21,8 @@ describe Pheromone::InitializerGenerator, type: :generator do
                   "  # pheromone_config.timezone = 'UTC'\n"\
                   "  pheromone_config.message_format = :json\n"\
                   "  WaterDrop.setup do |waterdrop_config|\n"\
-                  "    waterdrop_config.send_messages = Rails.env.production?\n"\
-                  "    waterdrop_config.connection_pool.size = 20\n"\
-                  "    waterdrop_config.connection_pool.timeout = 1\n"\
+                  "    waterdrop_config.deliver = Rails.env.production?\n"\
                   "    waterdrop_config.kafka.seed_brokers = [Rails.env.production? ? ENV['KAFKA_HOST'] : 'localhost:9092']\n"\
-                  "    waterdrop_config.raise_on_failure = Rails.env.production?\n"\
                   "  end\n"\
                   "end"\
     end

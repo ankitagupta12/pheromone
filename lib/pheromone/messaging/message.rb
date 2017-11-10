@@ -14,8 +14,8 @@ module Pheromone
       def send!
         WaterDrop::SyncProducer.call(
           MessageFormatter.new(full_message).format,
-          { topic: topic }.merge!(options)
-        ).send!
+          { topic: topic.to_s }.merge!(options)
+        )
       end
 
       private
