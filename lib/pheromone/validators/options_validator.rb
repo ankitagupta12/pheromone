@@ -17,6 +17,7 @@ module Pheromone
         validate_topic
         validate_event_types
         validate_message_attributes
+        validate_metadata
         validate_dispatch_method
         @errors
       end
@@ -63,6 +64,14 @@ module Pheromone
           method.nil? || ALLOWED_DISPATCH_METHODS.include?(method)
         end
         add_error_message(:dispatch_method, 'Invalid dispatch method')
+      end
+
+      def validate_metadata
+        return if @message_options.all? do |options|
+          metadata = options[:metadata]
+          metadata.is_a?(Hash) || metadata.nil?
+        end
+        add_error_message(:metadata, 'Metadata must be a Hash')
       end
 
       def add_error_message(key, value)

@@ -96,6 +96,20 @@ describe Pheromone::Validators::OptionsValidator do
         described_class.new(message_options).validate
       ).to match(dispatch_method: 'Invalid dispatch method')
     end
+
+    it 'returns an error message if the metadata is not a hash or nil' do
+      message_options = [
+        {
+          topic: :topic1,
+          event_types: %i(create update),
+          message: { a: 1 },
+          metadata: []
+        },
+      ]
+      expect(
+        described_class.new(message_options).validate
+      ).to match(metadata: 'Metadata must be a Hash')
+    end
   end
 
   context 'valid fields' do

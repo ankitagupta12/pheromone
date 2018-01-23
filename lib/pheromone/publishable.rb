@@ -82,18 +82,18 @@ module Pheromone
           message_parameters: {
             topic: options[:topic],
             blob: message_blob(options),
-            metadata: message_meta_data(current_event),
+            metadata: message_meta_data(options, current_event),
             producer_options: options[:producer_options]
           },
           dispatch_method: options[:dispatch_method] || :sync
         ).dispatch
       end
 
-      def message_meta_data(current_event)
+      def message_meta_data(options, current_event)
         {
           event: current_event,
           entity: self.class.name
-        }
+        }.merge(options[:metadata] || {})
       end
 
       def message_blob(options)
