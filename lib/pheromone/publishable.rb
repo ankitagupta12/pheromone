@@ -93,7 +93,7 @@ module Pheromone
         {
           event: current_event,
           entity: self.class.name
-        }.merge(options[:metadata] || {})
+        }.merge!(options[:metadata] || {})
       end
 
       def message_blob(options)

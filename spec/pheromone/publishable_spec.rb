@@ -87,7 +87,7 @@ describe Pheromone::Publishable do
       entity: 'PublishableModel',
       timestamp: '2015-03-12T00:30:00.000Z',
       blob: { name: 'sample' }
-    }.to_json
+    }
   end
 
   let(:update_message) do
@@ -96,7 +96,7 @@ describe Pheromone::Publishable do
       entity: 'PublishableModel',
       timestamp: '2015-03-12T00:30:00.000Z',
       blob: { name: 'new name' }
-    }.to_json
+    }
   end
 
   let(:metadata_message) do
@@ -106,49 +106,34 @@ describe Pheromone::Publishable do
       test: 'metadata',
       timestamp: '2015-03-12T00:30:00.000Z',
       blob: { name: 'sample' }
-    }.to_json
+    }
   end
 
   let(:model_create_messages) do
     [
       create_message,
       create_message,
-      {
-        event: 'create',
-        entity: 'PublishableModel',
-        timestamp: '2015-03-12T00:30:00.000Z',
-        blob: { title: 'title' }
-      }.to_json,
+      create_message.merge(blob: { title: 'title' }),
       create_message,
       create_message,
       metadata_message,
-    ]
+    ].map(&:to_json)
   end
 
   let(:model_update_messages) do
     [
       create_message,
       create_message,
-      {
-        event: 'create',
-        entity: 'PublishableModel',
-        timestamp: '2015-03-12T00:30:00.000Z',
-        blob: { title: 'title' }
-      }.to_json,
+      create_message.merge(blob: { title: 'title' }),
       create_message,
       create_message,
       create_message,
       metadata_message,
       update_message,
       update_message,
-      {
-        event: 'update',
-        entity: 'PublishableModel',
-        timestamp: '2015-03-12T00:30:00.000Z',
-        blob: { title: 'title' }
-      }.to_json,
+      update_message.merge(blob: { title: 'title' }),
       update_message
-    ]
+    ].map(&:to_json)
   end
 
   before do
