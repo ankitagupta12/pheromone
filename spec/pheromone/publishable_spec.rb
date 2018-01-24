@@ -101,8 +101,6 @@ describe Pheromone::Publishable do
 
   let(:metadata_message) do
     {
-      event: 'create',
-      entity: 'PublishableModel',
       test: 'metadata',
       timestamp: '2015-03-12T00:30:00.000Z',
       blob: { name: 'sample' }

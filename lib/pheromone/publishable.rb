@@ -90,10 +90,10 @@ module Pheromone
       end
 
       def message_meta_data(options, current_event)
-        {
-          event: current_event,
-          entity: self.class.name
-        }.merge!(options[:metadata] || {})
+        metadata = options[:metadata]
+        return { event: current_event, entity: self.class.name } if metadata.blank?
+        return metadata if metadata.is_a?(Hash)
+        call_proc_or_instance_method(metadata)
       end
 
       def message_blob(options)
