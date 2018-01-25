@@ -70,81 +70,68 @@ describe Pheromone::Publishable do
           topic: 'topic5',
           if: ->(data) { data.condition },
           message: :message
-        }
+        },
+        {
+          event_types: [:create],
+          topic: 'topic6',
+          message: :message,
+          metadata: { test: :metadata }
+        },
       ]
     end
   end
 
+  let(:create_message) do
+    {
+      event: 'create',
+      entity: 'PublishableModel',
+      timestamp: '2015-03-12T00:30:00.000Z',
+      blob: { name: 'sample' }
+    }
+  end
+
+  let(:update_message) do
+    {
+      event: 'update',
+      entity: 'PublishableModel',
+      timestamp: '2015-03-12T00:30:00.000Z',
+      blob: { name: 'new name' }
+    }
+  end
+
+  let(:metadata_message) do
+    {
+      test: 'metadata',
+      timestamp: '2015-03-12T00:30:00.000Z',
+      blob: { name: 'sample' }
+    }
+  end
+
   let(:model_create_messages) do
     [
-      {
-        event: 'create',
-        entity: 'PublishableModel',
-        timestamp: '2015-03-12T00:30:00.000Z',
-        blob: { name: 'sample' }
-      }.to_json,
-      {
-        event: 'create',
-        entity: 'PublishableModel',
-        timestamp: '2015-03-12T00:30:00.000Z',
-        blob: { name: 'sample' }
-      }.to_json,
-      {
-        event: 'create',
-        entity: 'PublishableModel',
-        timestamp: '2015-03-12T00:30:00.000Z',
-        blob: { title: 'title' }
-      }.to_json,
-      {
-        event: 'create',
-        entity: 'PublishableModel',
-        timestamp: '2015-03-12T00:30:00.000Z',
-        blob: { name: 'sample' }
-      }.to_json,
-      {
-        event: 'create',
-        entity: 'PublishableModel',
-        timestamp: '2015-03-12T00:30:00.000Z',
-        blob: { name: 'sample' }
-      }.to_json,
-    ]
+      create_message,
+      create_message,
+      create_message.merge(blob: { title: 'title' }),
+      create_message,
+      create_message,
+      metadata_message,
+    ].map(&:to_json)
   end
 
   let(:model_update_messages) do
-    model_create_messages.concat(
-      [
-        {
-          event: 'create',
-          entity: 'PublishableModel',
-          timestamp: '2015-03-12T00:30:00.000Z',
-          blob: { name: 'sample' }
-        }.to_json,
-        {
-          event: 'update',
-          entity: 'PublishableModel',
-          timestamp: '2015-03-12T00:30:00.000Z',
-          blob: { name: 'new name' }
-        }.to_json,
-        {
-          event: 'update',
-          entity: 'PublishableModel',
-          timestamp: '2015-03-12T00:30:00.000Z',
-          blob: { name: 'new name' }
-        }.to_json,
-        {
-          event: 'update',
-          entity: 'PublishableModel',
-          timestamp: '2015-03-12T00:30:00.000Z',
-          blob: { title: 'title' }
-        }.to_json,
-        {
-          event: 'update',
-          entity: 'PublishableModel',
-          timestamp: '2015-03-12T00:30:00.000Z',
-          blob: { name: 'new name' }
-        }.to_json
-      ]
-    )
+    [
+      create_message,
+      create_message,
+      create_message.merge(blob: { title: 'title' }),
+      create_message,
+      create_message,
+      create_message,
+      metadata_message,
+      update_message,
+      update_message,
+      update_message.merge(blob: { title: 'title' }),
+      update_message
+    ].map(&:to_json)
   end
 
   before do
@@ -179,8 +166,8 @@ describe Pheromone::Publishable do
       end
 
       it 'sends messages on create' do
-        expect(@invocation_count).to eq(5)
-        expect(topics).to match_array(%w(topic1 topic2 topic3))
+        expect(@invocation_count).to eq(6)
+        expect(topics).to match_array(%w(topic1 topic2 topic3 topic6))
         expect(messages).to match_array(model_create_messages)
       end
     end
@@ -193,8 +180,8 @@ describe Pheromone::Publishable do
       end
 
       it 'sends messages on create' do
-        expect(@invocation_count).to eq(5)
-        expect(topics).to match_array(%w(topic1 topic2 topic3))
+        expect(@invocation_count).to eq(6)
+        expect(topics).to match_array(%w(topic1 topic2 topic3 topic6))
         expect(messages).to match_array(model_create_messages)
       end
     end
@@ -207,8 +194,8 @@ describe Pheromone::Publishable do
       end
       it 'sends messages on update' do
         Timecop.freeze(timestamp) { @model.update!(name: 'new name') }
-        expect(@invocation_count).to eq(10)
-        expect(topics).to match_array(%w(topic1 topic2 topic3 topic4 topic5))
+        expect(@invocation_count).to eq(11)
+        expect(topics).to match_array(%w(topic1 topic2 topic3 topic4 topic5 topic6))
         expect(messages).to match(model_update_messages)
       end
     end
@@ -216,10 +203,10 @@ describe Pheromone::Publishable do
     context 'conditional publish' do
       before { Timecop.freeze(timestamp) { @model = PublishableModel.create(condition: true) } }
       it 'sends an extra message when events and condition matches' do
-        expect(@invocation_count).to eq(6)
-        expect(topics).to match_array(%w(topic1 topic2 topic3 topic4))
+        expect(@invocation_count).to eq(7)
+        expect(topics).to match_array(%w(topic1 topic2 topic3 topic4 topic6))
         expect(producer_options).to match_array(
-          [{}, {}, {}, {}, {}, { required_acks: 1 }]
+          [{}, {}, {}, {}, {}, { required_acks: 1 }, {}]
         )
       end
     end
@@ -242,7 +229,7 @@ describe Pheromone::Publishable do
         end
       end
       PublishableModel.create
-      expect(@invocation_count).to eq(5)
+      expect(@invocation_count).to eq(6)
       expect(PublishableModel.count).to eq(1)
     end
 
