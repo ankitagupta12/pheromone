@@ -11,6 +11,7 @@
 #                compression_threshold: 10,
 #                required_acks: 1
 #              }
+#              metadata: { source: 'application1' }
 #              event_types: [:create, :update],
 #              message: { a: 1, b: 2 }
 #              dispatch_method: :async
@@ -30,6 +31,8 @@ require 'pheromone/validators/options_validator'
 require 'pheromone/exceptions/invalid_publish_options'
 require 'pheromone/method_invoker'
 require 'pheromone/messaging/message_dispatcher'
+require 'pry'
+
 module Pheromone
   module Publishable
     # class methods for the model including Publishable
@@ -56,6 +59,7 @@ module Pheromone
       include Pheromone::MethodInvoker
 
       def dispatch_messages(message_options:, current_event:)
+        return unless enabled?
         message_options.each do |options|
           next unless check_conditions(options, current_event)
           send_message(options, current_event)
@@ -63,6 +67,10 @@ module Pheromone
       end
 
       private
+
+      def enabled?
+        Pheromone.config.enabled
+      end
 
       def check_conditions(options, current_event)
         condition_callback = options[:if]

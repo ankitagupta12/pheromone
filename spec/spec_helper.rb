@@ -11,6 +11,7 @@ require 'timecop'
 require 'with_model'
 require 'rails/railtie'
 require 'waterdrop'
+require 'pheromone/frameworks/rspec'
 
 RSpec.configure do |config|
   config.extend WithModel

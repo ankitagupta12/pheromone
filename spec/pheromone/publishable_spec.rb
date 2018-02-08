@@ -148,6 +148,7 @@ describe Pheromone::Publishable do
     let(:producer_options) { [] }
 
     before do
+      Pheromone.config.enabled = true
       @invocation_count = 0
       allow(WaterDrop::SyncProducer).to receive(:call) do |message, options|
         @invocation_count += 1
@@ -214,6 +215,7 @@ describe Pheromone::Publishable do
 
   context 'callback chain fails' do
     before do
+      Pheromone.config.enabled = true
       @invocation_count = 0
       allow(WaterDrop::SyncProducer).to receive(:call) do
         @invocation_count += 1
@@ -243,6 +245,26 @@ describe Pheromone::Publishable do
       end
       PublishableModel.create
       expect(PublishableModel.count).to eq(0)
+      expect(@invocation_count).to eq(0)
+    end
+  end
+
+  context 'pheromone is disabled' do
+    before do
+      Pheromone::Config.configure do |config|
+        config.message_format = :json
+        config.timezone = 'UTC'
+        config.enabled = false
+      end
+
+      @invocation_count = 0
+      allow(WaterDrop::SyncProducer).to receive(:call) do
+        @invocation_count += 1
+      end
+    end
+
+    it 'does not send messages to kafka' do
+      PublishableModel.create
       expect(@invocation_count).to eq(0)
     end
   end

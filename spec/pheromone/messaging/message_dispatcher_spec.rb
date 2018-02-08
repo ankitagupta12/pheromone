@@ -12,6 +12,10 @@ describe Pheromone::Messaging::MessageDispatcher do
     }
   end
 
+  before do
+    Pheromone.config.enabled = true
+  end
+
   context 'using async dispatch method' do
     context 'using resque' do
       before do
@@ -91,32 +95,48 @@ describe Pheromone::Messaging::MessageDispatcher do
   end
 
   context 'using sync dispatch method' do
-    before do
-      @topic = @message = @options = nil
-      instance_double = double(send!: nil)
-      Pheromone::Config.configure do |config|
-        config.message_format = :json
+    context 'pheromone is enabled' do
+      before do
+        @topic = @message = @options = nil
+        instance_double = double(send!: nil)
+        Pheromone::Config.configure do |config|
+          config.message_format = :json
+        end
+
+        expect(WaterDrop::SyncProducer).to receive(:call) do |message, options|
+          @topic = options[:topic]
+          @message = message
+          @options = options.except(:topic)
+        end.and_return(instance_double)
       end
 
-      expect(WaterDrop::SyncProducer).to receive(:call) do |message, options|
-        @topic = options[:topic]
-        @message = message
-        @options = options.except(:topic)
-      end.and_return(instance_double)
+      around { |example| Timecop.freeze(Time.local(2015, 7, 14, 10, 10), &example) }
+
+      it 'sends message using waterdrop' do
+        described_class.new(
+          message_parameters: message_parameters,
+          dispatch_method: :sync
+        ).dispatch
+        expect(@topic).to eq('test_topic')
+        expect(@message).to eq(
+          "{\"timestamp\":\"2015-07-14T02:10:00.000Z\",\"blob\":\"test_message\"}"
+        )
+        expect(@options).to eq({})
+      end
     end
 
-    around { |example| Timecop.freeze(Time.local(2015, 7, 14, 10, 10), &example) }
+    context 'pheromone is disabled' do
+      before do
+        Pheromone.config.enabled = false
+        expect(WaterDrop::SyncProducer).not_to receive(:call)
+      end
 
-    it 'sends message using waterdrop' do
-      described_class.new(
-        message_parameters: message_parameters,
-        dispatch_method: :sync
-      ).dispatch
-      expect(@topic).to eq('test_topic')
-      expect(@message).to eq(
-        "{\"timestamp\":\"2015-07-14T02:10:00.000Z\",\"blob\":\"test_message\"}"
-      )
-      expect(@options).to eq({})
+      it 'does not send message when pheromone is disabled' do
+        described_class.new(
+            message_parameters: message_parameters,
+            dispatch_method: :sync
+        ).dispatch
+      end
     end
   end
 end

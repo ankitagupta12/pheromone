@@ -15,6 +15,7 @@ module Pheromone
       end
 
       def dispatch
+        return unless enabled?
         if @dispatch_method == :sync
           message.send!
         elsif @dispatch_method == :async
@@ -37,6 +38,10 @@ module Pheromone
 
       def message
         Message.new(message_body)
+      end
+
+      def enabled?
+        Pheromone.config.enabled
       end
 
       def message_body

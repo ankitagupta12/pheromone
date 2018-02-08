@@ -6,6 +6,7 @@ module Pheromone
     extend Dry::Configurable
     # accepts message format. Currently only accepts :json as the permitted value
     setting :message_format, :json
+    setting :enabled, true
     setting :background_processor do
       # accepts :sidekiq or :resque as a value
       setting :name

@@ -52,6 +52,7 @@ Edit this file to modify the default config. The following configuration options
 | background_processor.klass    | String        | Background processor class name that sends messages to kafka |
 | timezone_format               | String        | Valid timezone name for timestamps sent to kafka |
 | message_format                | Symbol        | Only supports :json format currently |
+| enabled                       | Boolean       | Defaults to true. When this is set to false, no messages will be sent to Kafka |
 
 The timezone setting will transform any timestamp attributes in the message to the specified format.
 
@@ -91,6 +92,7 @@ Create a new class and add the name under `Pheromone.config.background_processor
    def self.perform(message_object)
      Pheromone::Messaging::Message.new(
        topic: message_object['topic'],
+       metadata: { source: 'application1' },
        blob: message_object['blob'],
        metadata: message_object['metadata'],
        options: message_object['options']
@@ -126,6 +128,7 @@ class PublishableModel < ActiveRecord::Base
     {
       event_types: [:create],
       topic: :topic1,
+      metadata: { source: 'application1' },
       message: ->(obj) { { name: obj.name } }
     }
   ]
@@ -141,6 +144,7 @@ class PublishableModel < ActiveRecord::Base
     {
       event_types: [:update],
       topic: :topic1,
+      metadata: { source: 'application1' },
       message: ->(obj) { { name: obj.name } }
     }
   ]
@@ -160,6 +164,7 @@ class PublishableModel < ActiveRecord::Base
     {
       event_types: [:create],
       topic: :topic1,
+      metadata: { source: 'application1' },
       message: ->(obj) { { name: obj.name } }
     }
   ]
@@ -175,6 +180,7 @@ class PublishableModel < ActiveRecord::Base
     {
       event_types: [:update],
       topic: :topic1,
+      metadata: { source: 'application1' },
       message: message
     }
   ]
@@ -194,6 +200,7 @@ class PublishableModel < ActiveRecord::Base
     {
       event_types: [:create],
       topic: :topic1,
+      metadata: { source: 'application1' },
       serializer: Class.new(BaseSerializer) { attributes :name, :type }
     }
   ]
@@ -288,7 +295,30 @@ class PublishableModel < ActiveRecord::Base
 end
 ```
 
-### 7. Sending messages to Kafka directly
+### 7. Specifying message metadata
+
+These can be sent in by specifying `metadata` to the `publish` method:
+
+```
+class PublishableModel < ActiveRecord::Base
+  include Pheromone::Publishable
+  publish [
+    {
+      event_types: [:create],
+      topic: :topic_test,
+      message: ->(obj) { { name: obj.name } },
+      metadata: { source: 'application1' },
+      producer_options: {
+        key: 'key',
+        partition: 1,
+        partition_key: 'key'
+      }
+    }
+  ]
+end
+```
+
+### 8. Sending messages to Kafka directly
 
 `pheromone` provides a custom message object that sends messages to Kafka in a predefined format, to maintain consistency in the message fields.
 
@@ -325,6 +355,38 @@ end
 
 As seen above `timestamp` will be added automatically to the main attributes along with the message metadata. The actual message will be encapsulated inside a key called `blob`.
 
+## Testing
+
+#### RSpec
+
+`pheromone` makes it easy to control when it is enabled during testing with `pheromone/frameworks/rspec`
+ 
+ ```
+ # spec/rails_helper.rb
+ require 'rspec/rails'
+ # ...
+ require 'pheromone/frameworks/rspec'
+ 
+ ```
+ 
+ With this helper, `publishable` is disabled by default. To turn it on, pass `publishable: true` to the spec block like this:
+ 
+ ```
+ describe 'PublishableModel' do
+   before do
+     @invocation_count = 0
+     allow(WaterDrop::SyncProducer).to receive(:call) do
+     @invocation_count += 1
+   end
+    
+   it 'sends messages to kafka', publishable: true do
+     PublishableModel.create
+     expect(@invocation_count).to eq(1)
+   end
+ end
+ ```
+ 
+ 
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
