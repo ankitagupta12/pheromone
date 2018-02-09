@@ -31,7 +31,6 @@ require 'pheromone/validators/options_validator'
 require 'pheromone/exceptions/invalid_publish_options'
 require 'pheromone/method_invoker'
 require 'pheromone/messaging/message_dispatcher'
-require 'pry'
 
 module Pheromone
   module Publishable
