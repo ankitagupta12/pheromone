@@ -385,7 +385,7 @@ As seen above `timestamp` will be added automatically to the main attributes alo
    end
  end
  ```
- Alternatively, `Pheromone.config.enabled` can be used to check if `pheromone` is enabled
+ Alternatively, `Pheromone.enabled?` can be used to check if `pheromone` is enabled
  
 ## Development
 

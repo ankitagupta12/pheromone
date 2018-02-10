@@ -11,6 +11,10 @@ module Pheromone
       Config.config
     end
 
+    def enabled?
+      Pheromone.config.enabled
+    end
+
     # Provides a block to override default config
     def setup(&block)
       Config.setup(&block)

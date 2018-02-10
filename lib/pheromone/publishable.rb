@@ -58,7 +58,7 @@ module Pheromone
       include Pheromone::MethodInvoker
 
       def dispatch_messages(message_options:, current_event:)
-        return unless enabled?
+        return unless Pheromone.enabled?
         message_options.each do |options|
           next unless check_conditions(options, current_event)
           send_message(options, current_event)
@@ -66,10 +66,6 @@ module Pheromone
       end
 
       private
-
-      def enabled?
-        Pheromone.config.enabled
-      end
 
       def check_conditions(options, current_event)
         condition_callback = options[:if]
