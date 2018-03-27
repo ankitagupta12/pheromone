@@ -107,6 +107,13 @@ describe Pheromone::Publishable do
     }
   end
 
+  let(:default_metadata_message) do
+    {
+      event: :create,
+      entity: 'PublishableModel'
+    }
+  end
+
   let(:model_create_messages) do
     [
       create_message,
@@ -114,7 +121,7 @@ describe Pheromone::Publishable do
       create_message.merge(blob: { title: 'title' }),
       create_message,
       create_message,
-      metadata_message,
+      default_metadata_message.merge(metadata_message),
     ].map(&:to_json)
   end
 
@@ -126,7 +133,7 @@ describe Pheromone::Publishable do
       create_message,
       create_message,
       create_message,
-      metadata_message,
+      default_metadata_message.merge(metadata_message),
       update_message,
       update_message,
       update_message.merge(blob: { title: 'title' }),

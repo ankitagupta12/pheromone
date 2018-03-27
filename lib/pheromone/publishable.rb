@@ -94,8 +94,9 @@ module Pheromone
 
       def message_meta_data(options, current_event)
         metadata = options[:metadata]
-        return { event: current_event, entity: self.class.name } if metadata.blank?
-        return metadata if metadata.is_a?(Hash)
+        default_metadata = { event: current_event, entity: self.class.name }
+        return default_metadata if metadata.blank?
+        return default_metadata.merge(metadata) if metadata.is_a?(Hash)
         call_proc_or_instance_method(metadata)
       end
 
