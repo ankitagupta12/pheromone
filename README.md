@@ -58,6 +58,7 @@ The timezone setting will transform any timestamp attributes in the message to t
 
 ## Usage
 
+
 ### 1. Sending messages to kafka asynchronously
 
 The underlying Kafka client used by `pheromone` is `ruby-kafka`. This client provides a normal producer that sends messages to Kafka synchronously, and an `async_producer` to send messages to Kafka asynchronously.
@@ -297,7 +298,20 @@ end
 
 ### 7. Specifying message metadata
 
-These can be sent in by specifying `metadata` to the `publish` method:
+Pheromone makes it easier to standardise the format of messages sent to Kafka while affording the flexibility to add other custom fields using the metadata option.
+
+By default, the messages sent to Kafka have an event_type and timestamp attached to it as shown below: 
+```
+  {
+    'event_type' => 'create',
+    'timestamp' => '2015-07-14T10:10:00.000+08:00',
+    'blob' => {
+      'message_text' => 'test'
+    }
+  }.to_json
+```
+
+By specifying `metadata` to the `publish` method:
 
 ```
 class PublishableModel < ActiveRecord::Base
@@ -316,6 +330,20 @@ class PublishableModel < ActiveRecord::Base
     }
   ]
 end
+```
+
+The Kafka message will have the original metadata in addition to the new fields:
+ 
+
+```
+  {
+    'event_type' => 'create',
+    'timestamp' => '2015-07-14T10:10:00.000+08:00',
+    'source' => 'application1',
+    'blob' => {
+      'message_text' => 'test'
+    }
+  }.to_json
 ```
 
 ### 8. Sending messages to Kafka directly
