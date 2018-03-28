@@ -94,9 +94,10 @@ module Pheromone
 
       def message_meta_data(options, current_event)
         metadata = options[:metadata]
-        return { event: current_event, entity: self.class.name } if metadata.blank?
-        return metadata if metadata.is_a?(Hash)
-        call_proc_or_instance_method(metadata)
+        default_metadata = { event: current_event, entity: self.class.name }
+        return default_metadata if metadata.blank?
+        provided_metadata = metadata.is_a?(Hash) ? metadata : call_proc_or_instance_method(metadata)
+        default_metadata.merge!(provided_metadata)
       end
 
       def message_blob(options)
