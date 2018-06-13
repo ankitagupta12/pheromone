@@ -2,28 +2,21 @@
 module Pheromone
   module Messaging
     class Message
-      def initialize(topic:, blob:, metadata: {}, options: {})
+      def initialize(topic:, blob:, metadata: {}, options: {}, encoder: nil)
         @topic = topic
         @blob = blob
         @options = options || {}
         @metadata = metadata || {}
+        @encoder = encoder
       end
 
       attr_reader :topic, :blob, :options, :metadata
 
       def send!
+        binding.pry
         WaterDrop::SyncProducer.call(
-          MessageFormatter.new(full_message).format,
+          MessageFormatter.new({ metadata: @metadata, blob: @blob }, encoder: @encoder).format,
           { topic: topic.to_s }.merge!(options)
-        )
-      end
-
-      private
-
-      def full_message
-        @metadata.merge!(
-          timestamp: Time.now,
-          blob: @blob
         )
       end
     end

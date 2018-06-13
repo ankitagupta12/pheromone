@@ -17,7 +17,10 @@ module Pheromone
       def dispatch
         return unless Pheromone.enabled?
         if @dispatch_method == :sync
-          message.send!
+          binding.pry
+          Message.new(
+            message_body.merge!(encoder: @message_parameters[:encoder])
+          ).send!
         elsif @dispatch_method == :async
           send_message_asynchronously
         end
@@ -34,10 +37,6 @@ module Pheromone
         elsif background_processor.name == :sidekiq
           background_processor_klass.perform_async(message_body)
         end
-      end
-
-      def message
-        Message.new(message_body)
       end
 
       def message_body
