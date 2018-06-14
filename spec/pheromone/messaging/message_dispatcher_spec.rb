@@ -8,7 +8,8 @@ describe Pheromone::Messaging::MessageDispatcher do
   let(:message_parameters) do
     {
       topic: :test_topic,
-      blob: 'test_message'
+      blob: 'test_message',
+      metadata: { timestamp: '2015-07-14T02:10:00.000Z' }
     }
   end
 
@@ -112,14 +113,29 @@ describe Pheromone::Messaging::MessageDispatcher do
 
       around { |example| Timecop.freeze(Time.local(2015, 7, 14, 10, 10), &example) }
 
-      it 'sends message using waterdrop' do
+      it 'sends non-encoded message using waterdrop if encoder is not specified' do
         described_class.new(
           message_parameters: message_parameters,
           dispatch_method: :sync
         ).dispatch
         expect(@topic).to eq('test_topic')
         expect(@message).to eq(
-          "{\"timestamp\":\"2015-07-14T02:10:00.000Z\",\"blob\":\"test_message\"}"
+          "{\"metadata\":{\"timestamp\":\"2015-07-14T02:10:00.000Z\"},\"blob\":\"test_message\"}"
+        )
+        expect(@options).to eq({})
+      end
+
+      it 'sends encoded message using waterdrop if encoder is specified' do
+        described_class.new(
+          message_parameters: message_parameters.merge(
+            message_format: :with_encoding,
+            encoder: lambda { |message| "#{message.to_s}encoded" }
+          ),
+          dispatch_method: :sync
+        ).dispatch
+        expect(@topic).to eq('test_topic')
+        expect(@message).to eq(
+          "{\"metadata\"=>{\"timestamp\"=>\"2015-07-14T02:10:00.000Z\"}, \"blob\"=>\"test_message\"}encoded"
         )
         expect(@options).to eq({})
       end

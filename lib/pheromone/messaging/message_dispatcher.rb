@@ -17,9 +17,11 @@ module Pheromone
       def dispatch
         return unless Pheromone.enabled?
         if @dispatch_method == :sync
-          binding.pry
           Message.new(
-            message_body.merge!(encoder: @message_parameters[:encoder])
+            message_body.merge!(
+              encoder: @message_parameters[:encoder],
+              message_format: @message_parameters[:message_format]
+            )
           ).send!
         elsif @dispatch_method == :async
           send_message_asynchronously

@@ -30,11 +30,13 @@ describe Pheromone::Messaging::Message do
       message_object = described_class.new(
         topic: @topic,
         blob: @message,
-        options: @options
+        options: @options,
+        encoder: nil,
+        message_format: nil
       )
       expect(WaterDrop::SyncProducer).to receive(:call).with(
         {
-          'timestamp' => '2015-07-14T10:10:00.000+08:00',
+          'metadata' => {},
           'blob' => {
             'server_time' => nil,
             'message_data' => {
@@ -54,12 +56,13 @@ describe Pheromone::Messaging::Message do
       message_object = described_class.new(
         topic: @topic,
         blob: @message,
-        metadata: @meta_data
+        metadata: @meta_data,
+        encoder: nil,
+        message_format: nil
       )
       expect(WaterDrop::SyncProducer).to receive(:call).with(
         {
-          'event_name' => 'create',
-          'timestamp' => '2015-07-14T10:10:00.000+08:00',
+          'metadata' => { 'event_name' => 'create' },
           'blob' => {
             'server_time' => nil,
             'message_data' => {
@@ -80,12 +83,13 @@ describe Pheromone::Messaging::Message do
         topic: @topic,
         blob: @message,
         metadata: @meta_data,
-        options: @options
+        options: @options,
+        encoder: nil,
+        message_format: nil
       )
       expect(WaterDrop::SyncProducer).to receive(:call).with(
         {
-          'event_name' => 'create',
-          'timestamp' => '2015-07-14T10:10:00.000+08:00',
+          'metadata' => { 'event_name' => 'create' },
           'blob' => {
             'server_time' => nil,
             'message_data' => {

@@ -83,26 +83,32 @@ describe Pheromone::Publishable do
 
   let(:create_message) do
     {
-      event: 'create',
-      entity: 'PublishableModel',
-      timestamp: '2015-03-12T00:30:00.000Z',
+      metadata: {
+        event: 'create',
+        entity: 'PublishableModel',
+        timestamp: '2015-03-12T00:30:00.000Z'
+      },
       blob: { name: 'sample' }
     }
   end
 
   let(:update_message) do
     {
-      event: 'update',
-      entity: 'PublishableModel',
-      timestamp: '2015-03-12T00:30:00.000Z',
+      metadata: {
+        event: 'update',
+        entity: 'PublishableModel',
+        timestamp: '2015-03-12T00:30:00.000Z',
+      },
       blob: { name: 'new name' }
     }
   end
 
   let(:metadata_message) do
     {
-      test: 'metadata',
-      timestamp: '2015-03-12T00:30:00.000Z',
+      metadata: {
+        timestamp: '2015-03-12T00:30:00.000Z',
+        test: 'metadata'
+      },
       blob: { name: 'sample' }
     }
   end
@@ -121,7 +127,9 @@ describe Pheromone::Publishable do
       create_message.merge(blob: { title: 'title' }),
       create_message,
       create_message,
-      default_metadata_message.merge(metadata_message),
+      metadata_message.tap do |message|
+        message[:metadata] = default_metadata_message.merge(message[:metadata])
+      end
     ].map(&:to_json)
   end
 
@@ -133,7 +141,9 @@ describe Pheromone::Publishable do
       create_message,
       create_message,
       create_message,
-      default_metadata_message.merge(metadata_message),
+      metadata_message.tap do |message|
+        message[:metadata] = default_metadata_message.merge(message[:metadata])
+      end,
       update_message,
       update_message,
       update_message.merge(blob: { title: 'title' }),
@@ -150,72 +160,127 @@ describe Pheromone::Publishable do
 
   context 'callback chain succeeds' do
     let(:timestamp) { Time.local(2015, 3, 12, 8, 30) }
-    let(:topics) { Set.new }
-    let(:messages) { [] }
-    let(:producer_options) { [] }
+    context 'encoding options are not given' do
+      let(:topics) { Set.new }
+      let(:messages) { [] }
+      let(:producer_options) { [] }
 
-    before do
-      Pheromone.config.enabled = true
-      @invocation_count = 0
-      allow(WaterDrop::SyncProducer).to receive(:call) do |message, options|
-        @invocation_count += 1
-        topics << options[:topic]
-        messages << message
-        producer_options << options.except(:topic)
-        double(send!: nil)
-      end
-    end
-
-    context 'create' do
       before do
-        Timecop.freeze(timestamp) do
-          @model = PublishableModel.create(name: 'sample')
+        Pheromone.config.enabled = true
+        @invocation_count = 0
+        allow(WaterDrop::SyncProducer).to receive(:call) do |message, options|
+          @invocation_count += 1
+          topics << options[:topic]
+          messages << message
+          producer_options << options.except(:topic)
+          double(send!: nil)
         end
       end
 
-      it 'sends messages on create' do
-        expect(@invocation_count).to eq(6)
-        expect(topics).to match_array(%w(topic1 topic2 topic3 topic6))
-        expect(messages).to match_array(model_create_messages)
-      end
-    end
+      context 'create' do
+        before do
+          Timecop.freeze(timestamp) do
+            @model = PublishableModel.create(name: 'sample')
+          end
+        end
 
-    context 'create' do
-      before do
-        Timecop.freeze(timestamp) do
-          @model = PublishableModel.create(name: 'sample')
+        it 'sends messages on create' do
+          expect(@invocation_count).to eq(6)
+          expect(topics).to match_array(%w(topic1 topic2 topic3 topic6))
+          expect(messages).to match_array(model_create_messages)
         end
       end
 
-      it 'sends messages on create' do
-        expect(@invocation_count).to eq(6)
-        expect(topics).to match_array(%w(topic1 topic2 topic3 topic6))
-        expect(messages).to match_array(model_create_messages)
-      end
-    end
+      context 'create' do
+        before do
+          Timecop.freeze(timestamp) do
+            @model = PublishableModel.create(name: 'sample')
+          end
+        end
 
-    context 'update' do
-      before do
-        Timecop.freeze(timestamp) do
-          @model = PublishableModel.create(condition: true, name: 'sample')
+        it 'sends messages on create' do
+          expect(@invocation_count).to eq(6)
+          expect(topics).to match_array(%w(topic1 topic2 topic3 topic6))
+          expect(messages).to match_array(model_create_messages)
         end
       end
-      it 'sends messages on update' do
-        Timecop.freeze(timestamp) { @model.update!(name: 'new name') }
-        expect(@invocation_count).to eq(11)
-        expect(topics).to match_array(%w(topic1 topic2 topic3 topic4 topic5 topic6))
-        expect(messages).to match(model_update_messages)
+
+      context 'update' do
+        before do
+          Timecop.freeze(timestamp) do
+            @model = PublishableModel.create(condition: true, name: 'sample')
+          end
+        end
+        it 'sends messages on update' do
+          Timecop.freeze(timestamp) { @model.update!(name: 'new name') }
+          expect(@invocation_count).to eq(11)
+          expect(topics).to match_array(%w(topic1 topic2 topic3 topic4 topic5 topic6))
+          expect(messages).to match(model_update_messages)
+        end
+      end
+
+      context 'conditional publish' do
+        before { Timecop.freeze(timestamp) { @model = PublishableModel.create(condition: true) } }
+        it 'sends an extra message when events and condition matches' do
+          expect(@invocation_count).to eq(7)
+          expect(topics).to match_array(%w(topic1 topic2 topic3 topic4 topic6))
+          expect(producer_options).to match_array(
+            [{}, {}, {}, {}, {}, { required_acks: 1 }, {}]
+          )
+        end
       end
     end
 
-    context 'conditional publish' do
-      before { Timecop.freeze(timestamp) { @model = PublishableModel.create(condition: true) } }
-      it 'sends an extra message when events and condition matches' do
-        expect(@invocation_count).to eq(7)
-        expect(topics).to match_array(%w(topic1 topic2 topic3 topic4 topic6))
-        expect(producer_options).to match_array(
-          [{}, {}, {}, {}, {}, { required_acks: 1 }, {}]
-        )
+    context 'encoding options are given' do
+      with_model :PublishableModelWithEncoding do
+        table do |t|
+          t.string :name
+          t.string :type
+          t.boolean :condition, default: false
+          t.timestamps null: false
+        end
+
+        # The model block works just like the class definition.
+        model do
+          include Pheromone::Publishable
+
+          def message
+            { name: name }
+          end
+
+          def type
+            'mock'
+          end
+
+          publish [
+            {
+              event_types: %i(create update),
+              topic: 'topic1',
+              message: ->(obj) { { name: obj.name } },
+              encoder: ->(message) { message.to_json },
+              message_format: :with_encoding
+            }
+          ]
+        end
+      end
+
+
+      before do
+        Pheromone.config.enabled = true
+        @messages = []
+        allow(WaterDrop::SyncProducer).to receive(:call) do |message, _|
+          @messages << message
+          double(send!: nil)
+        end
+        Timecop.freeze(timestamp) { @model = PublishableModelWithEncoding.create(condition: true) }
+      end
+
+      it 'sends the specified encoding options to formatter' do
+        @messages = [
+          "{\"metadata\":{\"event\":\"create\""\
+          ",\"entity\":\"PublishableModelWithEncoding\""\
+          ",\"timestamp\":\"2015-03-12T00:30:00.000Z\"},\"blob\":{\"name\":null}}"
+        ]
       end
     end
   end

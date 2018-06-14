@@ -87,6 +87,7 @@ module Pheromone
             blob: message_blob(options),
             metadata: message_meta_data(options, current_event),
             encoder: options[:encoder],
+            message_format: options[:message_format],
             producer_options: options[:producer_options]
           },
           dispatch_method: options[:dispatch_method] || :sync
@@ -95,7 +96,7 @@ module Pheromone
 
       def message_meta_data(options, current_event)
         metadata = options[:metadata]
-        default_metadata = { event: current_event, entity: self.class.name, timestamp: Time.now }
+        default_metadata = { event: current_event.to_s, entity: self.class.name, timestamp: Time.now }
         return default_metadata if metadata.blank?
         provided_metadata = metadata.is_a?(Hash) ? metadata : call_proc_or_instance_method(metadata)
         default_metadata.merge!(provided_metadata)

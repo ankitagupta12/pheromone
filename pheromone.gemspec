@@ -33,5 +33,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'sidekiq'
   spec.add_development_dependency 'sqlite3'
   spec.add_development_dependency 'timecop', '~> 0.8'
-  spec.add_development_dependency 'with_model', '~> 1.2'
+  spec.add_development_dependency 'with_model', '~> 1.2.1'
 end
