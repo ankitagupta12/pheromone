@@ -46,7 +46,8 @@ module Pheromone
           topic: @message_parameters[:topic],
           blob: @message_parameters[:blob],
           metadata: @message_parameters[:metadata],
-          options: @message_parameters[:producer_options] || {}
+          options: @message_parameters[:producer_options] || {},
+          embed_blob: @message_parameters[:embed_blob]
         }
       end
 

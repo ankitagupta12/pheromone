@@ -88,7 +88,8 @@ module Pheromone
             metadata: message_meta_data(options, current_event),
             encoder: options[:encoder],
             message_format: options[:message_format],
-            producer_options: options[:producer_options]
+            producer_options: options[:producer_options],
+            embed_blob: options[:embed_blob]
           },
           dispatch_method: options[:dispatch_method] || :sync
         ).dispatch

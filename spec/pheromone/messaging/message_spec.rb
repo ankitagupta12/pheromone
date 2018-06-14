@@ -32,7 +32,8 @@ describe Pheromone::Messaging::Message do
         blob: @message,
         options: @options,
         encoder: nil,
-        message_format: nil
+        message_format: nil,
+        embed_blob: nil
       )
       expect(WaterDrop::SyncProducer).to receive(:call).with(
         {
@@ -58,7 +59,8 @@ describe Pheromone::Messaging::Message do
         blob: @message,
         metadata: @meta_data,
         encoder: nil,
-        message_format: nil
+        message_format: nil,
+        embed_blob: nil
       )
       expect(WaterDrop::SyncProducer).to receive(:call).with(
         {
@@ -85,7 +87,8 @@ describe Pheromone::Messaging::Message do
         metadata: @meta_data,
         options: @options,
         encoder: nil,
-        message_format: nil
+        message_format: nil,
+        embed_blob: nil
       )
       expect(WaterDrop::SyncProducer).to receive(:call).with(
         {
