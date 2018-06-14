@@ -12,7 +12,6 @@ require 'with_model'
 require 'rails/railtie'
 require 'waterdrop'
 require 'pheromone/frameworks/rspec'
-require 'pry-byebug'
 
 RSpec.configure do |config|
   config.extend WithModel
