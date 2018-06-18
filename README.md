@@ -383,6 +383,74 @@ The Kafka message will have the original metadata in addition to the new fields:
 
 As seen above `timestamp` will be added automatically to the main attributes along with the message metadata. The actual message will be encapsulated inside a key called `blob`.
 
+### 9. Encoding messages
+
+`pheromone` allows encoding messages using custom encoders. Encoders can be specified by simply specifying a proc to encode the message in any given format.
+
+`publish` takes the `encoder` and `message_format` as options for encoding to be specified. Encoder is called with the entire message object and performs encoding on this message.
+
+```        
+  publish(
+    [ 
+      {
+        topic: :test_topic,
+        event_types: [:update, :create],
+        serializer: TestSerializer,
+        message_format: :with_encoding,
+        encoder: ->(message) { avro.encode(message, schema_name: 'test') },
+        if: ->(object) { object.should_publish_status_update? }
+      }
+    ]
+  )
+```
+
+## Message Contents
+
+In versions before `< 0.5`, the metadata keys were present at the top-most level, and the message itself was embedded inside the key `blob`.
+
+The message published to Kafka looks like this:
+ ```
+ {
+   event: 'create',
+   entity: 'KlassName',
+   timestamp: '2015-07-14T02:10:00.000Z',
+   blob: {
+     message_contents: 'message_contents'
+   }
+ }
+ ```
+ From `0.5` version onwards, the message format looks like this: 
+ ```
+ {
+   metadata: {
+     event: 'create',
+     entity: 'KlassName',
+     timestamp: '2015-07-14T02:10:00.000Z'
+   }
+   blob: {
+     message_contents: 'message_contents'
+   }
+ }
+ ```
+ `event`, `entity`, and `timestamp` are determined and added by `pheromone`. `timestamp` will be in UTC by default and will use `timezone_format` value specified in `config/initializers/pheromone.rb`. Contents of `metadata` can be modified by using these [guidelines](https://github.com/ankitagupta12/pheromone#7-specifying-message-metadata). Message contents are placed under the key `blob`.
+
+  In order to use the format with `blob` embedded inside `metadata`, specify option `embed_blob` as `true` inside `publish` options like this:
+  
+  ```        
+  publish(
+    [ 
+      {
+        topic: :test_topic,
+        event_types: [:update, :create],
+        serializer: TestSerializer,
+        message_format: :with_encoding,
+        embed_blob: true
+        encoder: ->(message) { avro.encode(message, schema_name: 'test') },
+        if: ->(object) { object.should_publish_status_update? }
+      }
+    ]
+  )
+  ```
 ## Testing
 
 #### RSpec

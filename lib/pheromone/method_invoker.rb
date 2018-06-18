@@ -6,8 +6,8 @@ module Pheromone
       # which is difficult to avoid since it handles
       # either a lambda/Proc or a named method from the including
       # class.
-      def call_proc_or_instance_method(proc_or_symbol)
-        return proc_or_symbol.call(self) if proc_or_symbol.respond_to?(:call)
+      def call_proc_or_instance_method(proc_or_symbol, argument = nil)
+        return proc_or_symbol.call(argument || self) if proc_or_symbol.respond_to?(:call)
         unless respond_to? proc_or_symbol
           raise "Method #{proc_or_symbol} not found for #{self.class.name}"
         end

@@ -17,7 +17,12 @@ module Pheromone
       def dispatch
         return unless Pheromone.enabled?
         if @dispatch_method == :sync
-          message.send!
+          Message.new(
+            message_body.merge!(
+              encoder: @message_parameters[:encoder],
+              message_format: @message_parameters[:message_format]
+            )
+          ).send!
         elsif @dispatch_method == :async
           send_message_asynchronously
         end
@@ -36,16 +41,13 @@ module Pheromone
         end
       end
 
-      def message
-        Message.new(message_body)
-      end
-
       def message_body
         {
           topic: @message_parameters[:topic],
           blob: @message_parameters[:blob],
           metadata: @message_parameters[:metadata],
-          options: @message_parameters[:producer_options] || {}
+          options: @message_parameters[:producer_options] || {},
+          embed_blob: @message_parameters[:embed_blob]
         }
       end
 
