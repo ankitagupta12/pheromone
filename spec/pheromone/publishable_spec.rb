@@ -264,7 +264,6 @@ describe Pheromone::Publishable do
         end
       end
 
-
       before do
         Pheromone.config.enabled = true
         @messages = []
@@ -276,11 +275,63 @@ describe Pheromone::Publishable do
       end
 
       it 'sends the specified encoding options to formatter' do
-        @messages = [
+        expect(@messages).to eq([
           "{\"metadata\":{\"event\":\"create\""\
           ",\"entity\":\"PublishableModelWithEncoding\""\
           ",\"timestamp\":\"2015-03-12T00:30:00.000Z\"},\"blob\":{\"name\":null}}"
-        ]
+        ])
+      end
+    end
+
+    context 'embed_blob option is ' do
+      with_model :PublishableModelWithEmbedBlob do
+        table do |t|
+          t.string :name
+          t.string :type
+          t.boolean :condition, default: false
+          t.timestamps null: false
+        end
+
+        # The model block works just like the class definition.
+        model do
+          include Pheromone::Publishable
+
+          def message
+            { name: name }
+          end
+
+          def type
+            'mock'
+          end
+
+          publish [
+            {
+              event_types: %i(create update),
+              topic: 'topic1',
+              message: ->(obj) { { name: obj.name } },
+              encoder: ->(message) { message.to_json },
+              embed_blob: true,
+              message_format: :with_encoding
+            }
+          ]
+        end
+      end
+
+      before do
+        Pheromone.config.enabled = true
+        @messages = []
+        allow(WaterDrop::SyncProducer).to receive(:call) do |message, _|
+          @messages << message
+          double(send!: nil)
+        end
+        Timecop.freeze(timestamp) { @model = PublishableModelWithEmbedBlob.create(condition: true) }
+      end
+
+      it 'sends the specified encoding options to formatter' do
+        expect(@messages).to eq([
+          "{\"event\":\"create\",\"entity\":\"PublishableModelWithEmbedBlob\""\
+          ",\"timestamp\":\"2015-03-12T00:30:00.000Z\",\"blob\":{\"name\":null}}"
+        ])
       end
     end
   end
