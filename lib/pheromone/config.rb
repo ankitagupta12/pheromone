@@ -8,10 +8,13 @@ module Pheromone
     setting :message_format, :json
     setting :enabled, true
     setting :background_processor do
+      # type: symbol
       # accepts :sidekiq or :resque as a value
       setting :name
+      # type: string
       # specify the background job handling message send to kafka
       setting :klass
+      # type: proc/lambda
       # specify custom background job
       setting :custom_processor
     end
