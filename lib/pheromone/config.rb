@@ -12,7 +12,7 @@ module Pheromone
       setting :name
       # specify the background job handling message send to kafka
       setting :klass
-      # specify custom background job (the name should be left empty)
+      # specify custom background job
       setting :custom_processor
     end
     # timezone names should match a valid timezone defined here:

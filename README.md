@@ -50,6 +50,7 @@ Edit this file to modify the default config. The following configuration options
 |-------------------------------|---------------|----------------------------------|
 | background_processor.name     | Symbol        | Choose :sidekiq or :resque as the background processor only if messages need to be sent to kafka asynchronously |
 | background_processor.klass    | String        | Background processor class name that sends messages to kafka |
+| background_processor.custom_processor |Proc| Custom processor (only works when you specify name as :custom) |
 | timezone_format               | String        | Valid timezone name for timestamps sent to kafka |
 | message_format                | Symbol        | Only supports :json format currently |
 | enabled                       | Boolean       | Defaults to true. When this is set to false, no messages will be sent to Kafka |
@@ -117,7 +118,7 @@ Create a new class and add the name under `Pheromone.config.background_processor
    end
  end
 ```
-### 1.c. Implement your own processor
+#### 1.c. Implement your own processor
 You can also implement your own processor in addition to resque and sidekiq.
 ```ruby
   Pheromone.setup do |config|
