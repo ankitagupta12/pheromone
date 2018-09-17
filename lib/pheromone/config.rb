@@ -12,6 +12,8 @@ module Pheromone
       setting :name
       # specify the background job handling message send to kafka
       setting :klass
+      # specify custom background job (the name should be left empty)
+      setting :custom_processor
     end
     # timezone names should match a valid timezone defined here:
     # http://api.rubyonrails.org/classes/ActiveSupport/TimeZone.html
