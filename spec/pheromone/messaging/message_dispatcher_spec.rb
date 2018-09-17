@@ -151,7 +151,6 @@ describe Pheromone::Messaging::MessageDispatcher do
         end
       end
     end
-
   end
 
   context 'using sync dispatch method' do

@@ -36,7 +36,7 @@ Pheromone.setup do |pheromone_config|
   # pheromone_config.background_processor.klass = 'BackgroundWorker'
   # pheromone_config.timezone = 'UTC'
   pheromone_config.message_format = :json
-    WaterDrop.setup do |waterdrop_config|    
+    WaterDrop.setup do |waterdrop_config|
       waterdrop_config.deliver = Rails.env.production?
       waterdrop_config.kafka.seed_brokers = [Rails.env.production? ? ENV['KAFKA_HOST'] : 'localhost:9092']
     end
@@ -46,7 +46,7 @@ end
 Edit this file to modify the default config. The following configuration options are available:
 
 
-| Option                        | Value type    | Description                      | 
+| Option                        | Value type    | Description                      |
 |-------------------------------|---------------|----------------------------------|
 | background_processor.name     | Symbol        | Choose :sidekiq or :resque as the background processor only if messages need to be sent to kafka asynchronously |
 | background_processor.klass    | String        | Background processor class name that sends messages to kafka |
@@ -66,7 +66,7 @@ The underlying Kafka client used by `pheromone` is `ruby-kafka`. This client pro
 It is advisable to use the normal producer in production systems because async producer provides no guarantees that the messages will be delivered. To read more on this, refer the `ruby-kafka` [documentation](https://github.com/zendesk/ruby-kafka#asynchronously-producing-messages)
 
 Even while using a synchronous producer, sometimes there might be a need to run send messages to Kafka in a background task. This is especially true for batch processing tasks that send a high message volume to Kafka. To allow for this, `pheromone` provides an `async` mode that can be specified as an option to `publish` by specifying `dispatch_method` as `:async`. By default, `dispatch_method` will be `:sync`. Specifying `:async` will still use the normal producer and NOT the async_producer.
-  
+
 ```
 class PublishableModel < ActiveRecord::Base
   include Pheromone::Publishable
@@ -117,6 +117,18 @@ Create a new class and add the name under `Pheromone.config.background_processor
    end
  end
 ```
+### 1.c. Implement your own processor
+You can also implement your own processor in addition to resque and sidekiq.
+```ruby
+  Pheromone.setup do |config|
+    config.background_processor.name = :custom
+    config.background_processor.klass = 'CustomJob'
+    config.background_processor.custom_processor = -> (klass, msg) do
+      klass.perform(msg)
+    end
+  end
+```
+
 `pheromone` will invoke the class name specified in the config with the message object. This mode can be used if you don't want to block a request that ends up sending messages to Kafka.
 
 ### 2. Supported events
@@ -300,7 +312,7 @@ end
 
 Pheromone makes it easier to standardise the format of messages sent to Kafka while affording the flexibility to add other custom fields using the metadata option.
 
-By default, the messages sent to Kafka have an event_type and timestamp attached to it as shown below: 
+By default, the messages sent to Kafka have an event_type and timestamp attached to it as shown below:
 ```
   {
     'event_type' => 'create',
@@ -333,7 +345,7 @@ end
 ```
 
 The Kafka message will have the original metadata in addition to the new fields:
- 
+
 
 ```
   {
@@ -351,15 +363,15 @@ The Kafka message will have the original metadata in addition to the new fields:
 `pheromone` provides a custom message object that sends messages to Kafka in a predefined format, to maintain consistency in the message fields.
 
 `Pheromone::Messaging::Message` can be initialized with the following arguments:
- - `topic`: name of the topic to which the message is produced 
+ - `topic`: name of the topic to which the message is produced
  - `blob`: the actual message itself
  - `metadata`: any additional fields that must be sent along with the message
  - `options`: producer options as described in Section 6
- 
+
  Of these fields, only `topic` and `message` are compulsory and the remaining two are optional.
- 
+
  Example usage:
- 
+
  ```
    Pheromone::Messaging::Message.new(
      topic: 'test_topic',
@@ -368,9 +380,9 @@ The Kafka message will have the original metadata in addition to the new fields:
      producer_options: { max_retries: 5 }
    ).send!
  ```
- 
- This will send a message to `test_topic` in Kafka in the following format: 
- 
+
+ This will send a message to `test_topic` in Kafka in the following format:
+
  ```
   {
     'event_type' => 'create',
@@ -389,9 +401,9 @@ As seen above `timestamp` will be added automatically to the main attributes alo
 
 `publish` takes the `encoder` and `message_format` as options for encoding to be specified. Encoder is called with the entire message object and performs encoding on this message.
 
-```        
+```
   publish(
-    [ 
+    [
       {
         topic: :test_topic,
         event_types: [:update, :create],
@@ -419,7 +431,7 @@ The message published to Kafka looks like this:
    }
  }
  ```
- From `0.5` version onwards, the message format looks like this: 
+ From `0.5` version onwards, the message format looks like this:
  ```
  {
    metadata: {
@@ -435,10 +447,10 @@ The message published to Kafka looks like this:
  `event`, `entity`, and `timestamp` are determined and added by `pheromone`. `timestamp` will be in UTC by default and will use `timezone_format` value specified in `config/initializers/pheromone.rb`. Contents of `metadata` can be modified by using these [guidelines](https://github.com/ankitagupta12/pheromone#7-specifying-message-metadata). Message contents are placed under the key `blob`.
 
   In order to use the format with `blob` embedded inside `metadata`, specify option `embed_blob` as `true` inside `publish` options like this:
-  
-  ```        
+
+  ```
   publish(
-    [ 
+    [
       {
         topic: :test_topic,
         event_types: [:update, :create],
@@ -456,17 +468,17 @@ The message published to Kafka looks like this:
 #### RSpec
 
 `pheromone` makes it easy to control when it is enabled during testing with `pheromone/frameworks/rspec`
- 
+
  ```
  # spec/rails_helper.rb
  require 'rspec/rails'
  # ...
  require 'pheromone/frameworks/rspec'
- 
+
  ```
- 
+
  With this helper, `publishable` is disabled by default. To turn it on, pass `publishable: true` to the spec block like this:
- 
+
  ```
  describe 'PublishableModel' do
    before do
@@ -474,7 +486,7 @@ The message published to Kafka looks like this:
      allow(WaterDrop::SyncProducer).to receive(:call) do
      @invocation_count += 1
    end
-    
+
    it 'sends messages to kafka', publishable: true do
      PublishableModel.create
      expect(@invocation_count).to eq(1)
@@ -482,7 +494,7 @@ The message published to Kafka looks like this:
  end
  ```
  Alternatively, `Pheromone.enabled?` can be used to check if `pheromone` is enabled
- 
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
