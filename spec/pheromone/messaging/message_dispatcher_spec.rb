@@ -93,6 +93,64 @@ describe Pheromone::Messaging::MessageDispatcher do
         expect(@message[:options]).to eq({})
       end
     end
+
+    context 'use custom background processor' do
+      class CustomJob
+        def self.perform(topic:, message:, metadata: {}, options: {})
+          Pheromone::Messaging::Message.new(
+            topic: topic,
+            blob: message,
+            metadata: metadata,
+            options: options
+          ).send!
+        end
+      end
+
+      context 'message should be processed by custom processor' do
+        before do
+          Pheromone.setup do |config|
+            config.background_processor.name = :custom
+            config.background_processor.klass = 'CustomJob'
+            config.background_processor.custom_processor = -> (klass, msg) do
+              klass.perform(msg)
+            end
+          end
+
+          expect(CustomJob).to receive(:perform) do |klass, message|
+            @klass = klass
+            @message = message
+          end
+        end
+
+        it 'should not raise error if custom processor is specified' do
+          expect do
+            described_class.new(
+              message_parameters: message_parameters,
+              dispatch_method: :async
+            ).dispatch
+          end.to_not raise_error
+        end
+      end
+
+      context 'if no processor is specified' do
+        before do
+          Pheromone.setup do |config|
+            config.background_processor.name = nil
+          end
+
+          expect(CustomJob).to_not receive(:perform)
+        end
+
+        it 'raise error' do
+          expect do
+            described_class.new(
+              message_parameters: message_parameters,
+              dispatch_method: :async
+            ).dispatch
+          end.to raise_error
+        end
+      end
+    end
   end
 
   context 'using sync dispatch method' do

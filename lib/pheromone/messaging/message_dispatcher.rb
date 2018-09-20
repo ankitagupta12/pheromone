@@ -9,6 +9,8 @@ require 'pheromone/messaging/message'
 module Pheromone
   module Messaging
     class MessageDispatcher
+      class NoSpecifiedProcessor < StandardError; end
+
       def initialize(message_parameters:, dispatch_method:)
         @message_parameters = message_parameters
         @dispatch_method = dispatch_method
@@ -38,6 +40,10 @@ module Pheromone
           Resque.enqueue(background_processor_klass, message_body)
         elsif background_processor.name == :sidekiq
           background_processor_klass.perform_async(message_body)
+        elsif background_processor.name == :custom
+          background_processor.custom_processor.call(background_processor_klass, message_body)
+        else
+          raise NoSpecifiedProcessor
         end
       end
 
